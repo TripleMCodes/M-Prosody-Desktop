@@ -1,0 +1,126 @@
+This is my desktop version of LL, I don't get any errors when logging in, but I get this error when I try to login:
+{'detail': [{'type': 'missing', 'loc': ['body', 'username'], 'msg': 'Field required', 'input': None}, {'type': 'missing', 'loc': ['body', 'password'], 'msg': 'Field required', 'input': None}]}
+This online_features.py:
+def call_endpoint(self, endpoint, data=None, access_token_required=True, login=True):
+        """Call online API if available"""
+
+
+        if access_token_required:
+            headers = self.get_headers()
+            if not headers:
+                logging.debug("Offline mode or no valid token")
+                print(self.token.access_token)
+                print("Offline mode or no valid token")
+
+
+                return None # will return cached results soon
+        if login:
+            print("logging...")
+            headers = { 'Content-Type': 'application/x-www-form-urlencoded'} 
+        else:
+            #signng up
+            print("signing up...")
+            headers = { 'Content-Type': 'application/json' }
+        try:
+            resp = requests.post(f"{API_BASE}{endpoint}", 
+                                 json=data, headers=headers, timeout=5)
+            if resp.status_code == 401:
+                # token expired or invalid, try refresh once
+                if self.token.refresh_access():
+                    headers = self.get_headers()
+                   
+                    resp = requests.post(f"{API_BASE}{endpoint}", json=data, headers=headers, timeout=5)
+                else:
+                    logging.debug("Login required for online features")
+                    return None
+            print("Done, logging in")
+            return resp.json()
+        except requests.RequestException:
+            logging.debug("API unavailable, offline mode active")
+            return None
+
+
+#test 
+
+
+
+
+This auth_dialog.py:
+def _do_login(self):
+        email = self.login_email.text().strip()
+        pw = self.login_password.text().strip()
+        print(email)
+        print(pw)
+        if not email or not pw:
+            QMessageBox.warning(self, "Missing info", "Please enter email and password.")
+            return
+
+
+        resp = self.api.call_endpoint("/api/login", {"username": email, "password": pw}, access_token_required=False, login=True)
+        if not resp:
+            QMessageBox.warning(self, "Login failed", "Could not log in. Check connection or credentials.")
+            return
+
+
+        # Expecting tokens back from API
+        print(resp)
+        access = resp.get("access_token")
+        refresh = resp.get("refresh_token")
+        expires_in = resp.get("expires_in", 3600)
+
+
+        if not access:
+            QMessageBox.warning(self, "Login failed", "Server response missing access token.")
+            return
+
+
+        self.api.token.access_token = access
+        self.api.token.refresh_token = refresh
+        import time
+        self.api.token.expiry = time.time() + float(expires_in)
+        self.api.token.save_tokens()
+
+
+        self._choose_online()
+
+
+    def _do_signup(self):
+        email = self.signup_email.text().strip()
+        pw = self.signup_password.text().strip()
+        name = self.name.text().strip()
+        age = self.age.text().strip()
+        if not email or not pw:
+            QMessageBox.warning(self, "Missing info", "Please enter email and password.")
+            return
+
+
+        resp = self.api.call_endpoint("/api/users", {"artist_name":name, "age":int(age) , "email": email, "password": pw}, access_token_required=False, login=False)
+        if not resp:
+            print(resp)
+            QMessageBox.warning(self, "Sign up failed", "Could not create account. Check connection.")
+            return
+
+
+        print(resp)
+        # Often signup returns tokens too. If it doesn’t, you can auto-switch to login tab.
+        access = resp.get("access_token")
+        refresh = resp.get("refresh_token")
+        expires_in = resp.get("expires_in", 3600)
+
+
+        print(access)
+        print(refresh)
+        print(expires_in)
+
+
+        if access:
+            self.api.token.access_token = access
+            self.api.token.refresh_token = refresh
+            import time
+            self.api.token.expiry = time.time() + float(expires_in)
+            self.api.token.save_tokens()
+            self._choose_online()
+        else:
+            QMessageBox.information(self, "Account created", "Account created. Please log in.")
+            self.tabs.setCurrentIndex(0)
+
