@@ -11,7 +11,7 @@ class Lyrics():
         self.conn = sqlite3.connect(self.db_path)
         self.conn_cursor = self.conn.cursor()
         self.lyrics_table = "lyrics_table"
-
+        self.local_id = 1 #default
 #===============================================select method(s)======================================
 #=================================================================================================
     def get_all_songs(self) -> list | dict:
@@ -21,7 +21,7 @@ class Lyrics():
         try:
             self.conn_cursor.execute(query)
             songs = self.conn_cursor.fetchall()
-            logging.debug(songs)
+            print(songs)
             return songs
         except sqlite3.DatabaseError as e:
             logging.debug(e)
@@ -40,7 +40,7 @@ class Lyrics():
         title, artist, lyrics, mood, genre, album = self._destructure_dict(data)
 
         query = f"""
-                    INSERT INTO {self.lyrics_table} (title, artist, album, genre, mood, lyrics) VALUES (?,?,?,?,?,?);
+                    INSERT INTO {self.lyrics_table} (title, artist, album, genre, mood, lyrics, local_profile_id) VALUES (?,?,?,?,?,?,?);
                 """
         
         is_unique = self._is_unique(str(title))
@@ -50,7 +50,7 @@ class Lyrics():
         elif isinstance(is_unique, dict):
             return {"message": "Error - Please try again", "state": False}
         try:
-            self.conn_cursor.execute(query, (title, artist, album, genre, mood, lyrics,))
+            self.conn_cursor.execute(query, (title, artist, album, genre, mood, lyrics, self.local_id ))
             self._commit_data()
             return {"message": "Song saved successfully", "state": True}
         except sqlite3.DatabaseError as e:
