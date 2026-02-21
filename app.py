@@ -26,6 +26,8 @@ def main():
         from ui.main_window import MProsody
 
         window = MProsody() 
+        window.theme_changed_signal.connect(w.apply_theme)
+        window.new_song_saved.connect(w.get_stats)
         window.show()
 
     def get_notes():
@@ -88,6 +90,7 @@ def main():
     w.on_update_note = update_note
     # w.on_save_note = lambda content, note_id: {"ok": True, "message": "Note saved."}
     w.on_delete_note = delete_note
+    w.on_get_stats = get_stats
     # w.on_delete_note = lambda note_id: {"ok": True, "message": "Note deleted."}
 
     writing_time, sessions, songs_num, total_songs_num = get_stats()

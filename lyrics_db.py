@@ -22,7 +22,7 @@ class Lyrics():
         try:
             self.conn_cursor.execute(query)
             songs = self.conn_cursor.fetchall()
-            print(songs)
+            # print(songs)
             return songs
         except sqlite3.DatabaseError as e:
             logging.debug(e)

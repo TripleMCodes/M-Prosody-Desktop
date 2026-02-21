@@ -59,9 +59,12 @@ class ThemeManager:
 
     def next_theme(self, current: str) -> str:
         if current == "light":
+            cache.set("theme", "dark")
             return "dark"
         if current == "dark":
+            cache.set("theme", "neutral")
             return "neutral"
+        cache.set("theme", "light")
         return "light"
 
     def stylesheet_for(self, theme: str) -> str:

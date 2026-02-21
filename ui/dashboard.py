@@ -1,18 +1,26 @@
 from PySide6.QtCore import Qt, QTimer, Signal, QSize
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QLineEdit, QPushButton,
     QListWidget, QListWidgetItem, QTextEdit, QScrollArea, QSizePolicy
 )
 from typing import Optional, Callable, List, Any, Dict
+from pathlib import Path
 from ui.glass_qss import GLASS_QSS
 from ui.notifications import NotificationToast
 from services.glass_builder import glass_card
 from services.models import Note, SongPreview
+from services.preferences import ThemeManager, Preferences
+
+from autodidex_cache import DictionaryCache
+from themes_db import Themes
+
+themes = Themes()
+cache = DictionaryCache()
 
 
 
-
+CONFIG_FILE = Path(__file__).parent.parent / "noteworthy files/config.json"
 
 class LLDashboard(QWidget):
     """
@@ -25,7 +33,15 @@ class LLDashboard(QWidget):
     """
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.setStyleSheet(GLASS_QSS)
+
+        self.prefs = Preferences(CONFIG_FILE)
+        self.theme_mgr = ThemeManager()
+        self.theme_mgr.load_themes()
+        prefs = self.prefs.load()
+        self.theme = prefs.theme
+
+        self.setStyleSheet(self.theme_mgr.stylesheet_for(self.theme))
+        # print(cache.get("theme"))
 
         # callbacks (inject from app)
         self.on_open_studio: Optional[Callable[[], None]] = None
@@ -34,6 +50,7 @@ class LLDashboard(QWidget):
         self.on_update_note: Optional[Callable[[str, str], Dict[str, Any]]] = None
         self.on_delete_note: Optional[Callable[[str], Dict[str, Any]]] = None
         self.on_refresh_notes: Optional[Callable[[], List[Note]]] = None
+        self.on_get_stats: Optional[Callable[[], None]] = None
 
         self._current_note_id: str = ""
 
@@ -280,6 +297,13 @@ class LLDashboard(QWidget):
                 parts.append(f"({album})")
             self.draft_meta.setText(" ".join(parts))
 
+    def get_stats(self):
+       writing_time, sessions, songs_num, total_songs_num = self.on_get_stats()
+
+       self.set_stats(writing_time=writing_time, writing_sessions=sessions, new_songs=songs_num, num_songs=total_songs_num)
+
+
+
     def set_recent_songs(self, songs: List[SongPreview]):
         self.recent_songs_list.clear()
         for s in songs:
@@ -401,6 +425,10 @@ class LLDashboard(QWidget):
 
         # mimic loading state; replace with real async later
         QTimer.singleShot(150, finish)
+
+    def apply_theme(self, theme):
+        self.setStyleSheet(self.theme_mgr.stylesheet_for(theme))
+       
 
     def _noop_search(self):
         # placeholder: you can hook this into your local DB search or API

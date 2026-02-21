@@ -1,5 +1,5 @@
 """
-Main window for Lyrical Lab (modularized).
+Main window for Lyrical Lab .
 
 This file keeps orchestration logic, while UI subcomponents live in ui/* and
 non-UI helpers live in services/*.
@@ -88,6 +88,9 @@ class SidebarMode:
 
 
 class MProsody(QWidget):
+    theme_changed_signal = Signal(str)
+    new_song_saved = Signal()
+
     def __init__(self):
         super().__init__()
 
@@ -291,7 +294,7 @@ class MProsody(QWidget):
         self.font_size = prefs.font_size
 
         self.theme_mgr.load_themes()
-        self.apply_theme()
+        self.setStyleSheet(self.theme_mgr.stylesheet_for(self.mode))
 
         # apply font
         self.change_font_size()
@@ -309,7 +312,7 @@ class MProsody(QWidget):
         self.mode = self.theme_mgr.next_theme(getattr(self, "mode", "dark"))
         self.setStyleSheet(self.theme_mgr.stylesheet_for(self.mode))
 
-        # keep icons in sync (optional: point to your real icon files)
+       
         base = Path(__file__).parent / "Icons"
         l_mode = base / "icons8-light-64.png"
         d_mode = base / "icons8-dark-mode-48.png"
@@ -323,6 +326,7 @@ class MProsody(QWidget):
 
         self.tools.theme_btn.setIcon(icon)
         self.sidebar_rail.theme_btn.setIcon(icon)
+        self.theme_changed_signal.emit(self.mode)
         
 
     def change_font_size(self):
@@ -512,6 +516,7 @@ class MProsody(QWidget):
         if msg.get("state"):
             QMessageBox.information(self, "Done", msg.get("message", "Saved."))
             self.refresh_song_list(self.songs.query())
+            self.new_song_saved.emit()
         else:
             QMessageBox.critical(self, "Error", msg.get("message", "Something went wrong."))
 

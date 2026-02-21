@@ -163,5 +163,5 @@ if __name__ == "__main__":
     # scratch_pad.add_content("There's no way out.")
     # print(scratch_pad.get_all_content())
     # scratch_pad.delete_content("There's no way out.")
-    print(scratch_pad.get_all_content())
-    print(scratch_pad.count_notes())
+    # print(scratch_pad.get_all_content())
+    # print(scratch_pad.count_notes())
