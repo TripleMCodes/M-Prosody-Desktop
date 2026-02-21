@@ -6,8 +6,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QFrame, QToolButton, QVBoxLayout, QWidget
-
+from PySide6.QtWidgets import QFrame, QToolButton, QVBoxLayout, QWidget, QPushButton
 
 class SidebarRail(QFrame):
     def __init__(
@@ -50,7 +49,14 @@ class SidebarRail(QFrame):
             b.clicked.connect(cb)
             return b
 
-        layout.addWidget(make_btn(icon_theme, "Theme", on_theme), alignment=Qt.AlignHCenter)
+
+
+        
+        self.theme_btn = QPushButton()
+        self.theme_btn.setIcon(icon_theme)
+        self.theme_btn.setToolTip("Theme")
+        self.theme_btn.clicked.connect(on_theme)
+        layout.addWidget(self.theme_btn, alignment=Qt.AlignHCenter)
         layout.addWidget(make_btn(icon_file, "Open file", on_file), alignment=Qt.AlignHCenter)
         layout.addWidget(make_btn(icon_save, "Save", on_save), alignment=Qt.AlignHCenter)
         layout.addWidget(make_btn(icon_flow, "Check flow", on_flow), alignment=Qt.AlignHCenter)

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 # -----------------------------
 # Data models (optional)
@@ -7,6 +8,8 @@ from dataclasses import dataclass
 class Note:
     id: str
     content: str
+    created_at: Optional[str] = None
+    update_at: Optional[str] = None
 
 
 @dataclass

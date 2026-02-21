@@ -27,10 +27,11 @@ class LLDashboard(QWidget):
         super().__init__(parent)
         self.setStyleSheet(GLASS_QSS)
 
-        # callbacks (inject from your app)
+        # callbacks (inject from app)
         self.on_open_studio: Optional[Callable[[], None]] = None
         self.on_fetch_rhymes: Optional[Callable[[str], List[str]]] = None
         self.on_save_note: Optional[Callable[[str, str], Dict[str, Any]]] = None
+        self.on_update_note: Optional[Callable[[str, str], Dict[str, Any]]] = None
         self.on_delete_note: Optional[Callable[[str], Dict[str, Any]]] = None
         self.on_refresh_notes: Optional[Callable[[], List[Note]]] = None
 
@@ -207,6 +208,8 @@ class LLDashboard(QWidget):
         st.addLayout(stats_row)
         lay.addWidget(st_card)
 
+        
+
         # Workspace
         ws_card, ws, _ = glass_card("Workspace")
 
@@ -330,10 +333,17 @@ class LLDashboard(QWidget):
         if not self.on_save_note:
             self.toast.show_toast("Save note clicked (wire handler).", "info")
             return
-
-        res = self.on_save_note(content, self._current_note_id)
-        ok = bool(res.get("ok", res.get("state", False)))
-        msg = res.get("message", "Saved." if ok else "Could not save.")
+        
+        if self._current_note_id:
+            res = self.on_update_note(self._current_note_id, content)
+            ok = bool(res.get("state", False))
+            print(ok)
+            msg = res.get("message", "Saved." if ok else "Could not save.")
+        else:
+            res = self.on_save_note(content)
+            ok = bool(res.get("state", False))
+            print(ok)
+            msg = res.get("message", "Saved." if ok else "Could not save.")
 
         self.toast.show_toast(msg, "success" if ok else "error")
 

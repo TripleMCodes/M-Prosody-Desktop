@@ -73,21 +73,21 @@ class ScratchPad():
         try:
             self.conn_cursor.execute(query, (content, self.local_profile_id,))
             self._commit_data()
-            return {"message": "Note saved successfully."}
+            return {"message": "Note saved successfully.", "state": True}
         except sqlite3.DatabaseError as e:
             logging.debug(e)
-            return {"message": "Database Error - Please try again"}
+            return {"message": "Database Error - Please try again", "state": True}
         except Exception as e:
             logging.debug(e)
             return {"message": "Error - Please try again"}
         
-    def update_content(self, old_content: str, new_content: str) -> dict:
+    def update_content(self, id:int, new_content: str) -> dict:
         """
         Docstring for update_content
         
         :param self: object reference
-        :param old_content: old note to be updated
-        :type old_content: str
+        :param id: note id
+        :type id: str
         :param new_content: new note
         :type new_content: str
         :return: message dict
@@ -104,12 +104,12 @@ class ScratchPad():
         query = """
                 UPDATE scratch_pad 
                 SET content = ?
-                WHERE content = ?;
+                WHERE id = ?;
                     """
         try:
-            self.conn_cursor.execute(query, (new_content, old_content))
+            self.conn_cursor.execute(query, (new_content, id,))
             self._commit_data()
-            return {"message": "Note successfully updated."}
+            return {"message": "Note successfully updated.", "state": True}
         except sqlite3.DatabaseError as e:
             logging.debug(e)
             return {"message": "Database Error - Please try again"}
@@ -117,12 +117,12 @@ class ScratchPad():
             logging.debug(e)
             return {"message": "Error - Please try again"}
         
-    def delete_content(self, content:str) -> dict:
+    def delete_content(self, id:str) -> dict:
         
 
-        query = f"DELETE FROM {self.scratch_pad} WHERE content = ?;"
+        query = f"DELETE FROM {self.scratch_pad} WHERE id = ?;"
         try:
-            self.conn_cursor.execute(query, (content))
+            self.conn_cursor.execute(query, (id,))
             self._commit_data()
             return {"message": f"Note successfully deleted.", "state": True}
         except sqlite3.DatabaseError as e:
@@ -131,12 +131,37 @@ class ScratchPad():
         except Exception as e:
             logging.debug(e)
             return {"message": "Error - Please try again", "state": False}
+
+
+
+    def count_notes(self) -> int|dict:
         
+        query = """select count(*) from scratch_pad;"""
+
+        try:
+            self.conn_cursor.execute(query)
+            notes_count = self.conn_cursor.fetchone()
+            return notes_count
+        except sqlite3.DatabaseError as e:
+            logging.debug(e)
+            return {"message": "Database Error - Please try again", "state": False}
+        except Exception as e:
+            logging.debug(e)
+            return {"message": "Error - Please try again", "state": False}
+        
+
 
 if __name__ == "__main__":
     scratch_pad = ScratchPad()
 
-    logging.debug(scratch_pad.get_all_content())
+    # logging.debug(scratch_pad.get_all_content())
 
-    res = scratch_pad.add_content("To be or not to be? That is the question. Violence is the answer.")
-    print(res)
+    # res = scratch_pad.add_content("To be or not to be? That is the question. Violence is the answer.")
+    # print(res)
+    # scratch_pad.update_content("""To be or not to be? That is the question. Violence is the answer.""", """To be or not to be? That is the question.""")
+
+    # scratch_pad.add_content("There's no way out.")
+    # print(scratch_pad.get_all_content())
+    # scratch_pad.delete_content("There's no way out.")
+    print(scratch_pad.get_all_content())
+    print(scratch_pad.count_notes())

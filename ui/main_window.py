@@ -322,6 +322,8 @@ class MProsody(QWidget):
             icon = QIcon(str(n_mode))
 
         self.tools.theme_btn.setIcon(icon)
+        self.sidebar_rail.theme_btn.setIcon(icon)
+        
 
     def change_font_size(self):
         if self.openning_app:

@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from datetime import datetime, timedelta
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,6 +30,41 @@ class Lyrics():
         except Exception as e:
             logging.debug(e)
             return {"message": "Error - Please try again."}
+
+    def get_latest_songs_count(self) -> dict:
+
+        one_week_ago = datetime.now() - timedelta(days=7)
+
+        query = f"""SELECT count(*) from (
+            SELECT * FROM {self.lyrics_table} WHERE created_at >= "{one_week_ago}");"""
+        
+        try:
+            self.conn_cursor.execute(query)
+            songs_num = self.conn_cursor.fetchone()
+            return {"message": songs_num, "status": True}
+        except sqlite3.DatabaseError as e:
+            logging.debug(e)
+            return {"message": "Database Error - Please try again."}
+        except Exception as e:
+            logging.debug(e)
+            return {"message": "Error - Please try again."}
+
+    def get_all_songs_count(self) -> dict:
+
+        query = f"""SELECT count(*) from {self.lyrics_table};"""
+
+        try:
+            self.conn_cursor.execute(query)
+            total_songs_num = self.conn_cursor.fetchone()
+            return {"message": total_songs_num, "status": True}
+        except sqlite3.DatabaseError as e:
+            logging.debug(e)
+            return {"message": "Database Error - Please try again."}
+        except Exception as e:
+            logging.debug(e)
+            return {"message": "Error - Please try again."}
+        
+
 #===============================================insert method(s)======================================
 #==================================================================================================
     def save_new_song(self, data:dict) -> dict | None | sqlite3.Error:
@@ -161,14 +197,10 @@ class Lyrics():
 if __name__ == "__main__":
 
     l_lab = Lyrics()
-    # song = {
-    #     "title":"When time comes",
-    #     "artist":"Connor",
-    #     "album":"Solitude",
-    #     "genre":"Hip-hop",
-    #     "mood":"interested",
-    #     "lyrics":"Where the lights finds me\nI begin to rise\nAll my fears desolve to light\nEvery done is proof that someday I'll become who I should be."
-    # }
+
+    print(l_lab.get_latest_songs_count().get('message')[0])
+    print(l_lab.get_all_songs_count())
+    # print(l_lab.get_all_songs())
 
     # res = l_lab.save_new_song(song)
     # logging.debug(res)
