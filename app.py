@@ -74,6 +74,7 @@ def main():
         stats = stats.get_res_stats()
         writing_time = stats[1]
         sessions = stats[2]
+        # print(f"session: {sessions}")
 
         return writing_time, sessions, songs_num, total_songs_num
         

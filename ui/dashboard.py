@@ -6,17 +6,17 @@ from PySide6.QtWidgets import (
 )
 from typing import Optional, Callable, List, Any, Dict
 from pathlib import Path
-from ui.glass_qss import GLASS_QSS
+# from ui.glass_qss import GLASS_QSS
 from ui.notifications import NotificationToast
 from services.glass_builder import glass_card
 from services.models import Note, SongPreview
 from services.preferences import ThemeManager, Preferences
-
+from stats_db import Stats
 from autodidex_cache import DictionaryCache
 from themes_db import Themes
 
-themes = Themes()
-cache = DictionaryCache()
+# themes = Themes()
+# cache = DictionaryCache()
 
 
 
@@ -298,9 +298,12 @@ class LLDashboard(QWidget):
             self.draft_meta.setText(" ".join(parts))
 
     def get_stats(self):
-       writing_time, sessions, songs_num, total_songs_num = self.on_get_stats()
+        stats = Stats()
+        writing_time, sessions, songs_num, total_songs_num = self.on_get_stats()
 
-       self.set_stats(writing_time=writing_time, writing_sessions=sessions, new_songs=songs_num, num_songs=total_songs_num)
+        res = stats.add_session(sessions)
+        sessions = res.get("new_ses", sessions)
+        self.set_stats(writing_time=writing_time, writing_sessions=sessions, new_songs=songs_num, num_songs=total_songs_num)
 
 
 

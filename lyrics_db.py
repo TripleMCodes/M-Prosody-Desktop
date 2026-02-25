@@ -105,12 +105,12 @@ class Lyrics():
                     mood = ?, lyrics = ?
                     WHERE id = ?;
                 """
-        is_unique = self._is_unique(title)
-        if isinstance(is_unique, bool):
-            if not is_unique:
-                return {"message": f"Song with '{title}' title already exists", "state": False}
-        if isinstance(is_unique, dict):
-            return {"message": is_unique.get("message"), "state": False}
+        # is_unique = self._is_unique(title)
+        # if isinstance(is_unique, bool):
+        #     if not is_unique:
+        #         return {"message": f"Song with '{title}' title already exists", "state": False}
+        # if isinstance(is_unique, dict):
+        #     return {"message": is_unique.get("message"), "state": False}
         try:
             self.conn_cursor.execute(query, (title, artist, album, genre, mood, lyrics, id,))
             self._commit_data()

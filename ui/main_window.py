@@ -16,11 +16,11 @@ import pronouncing
 import sounddevice as sd
 from scipy.io.wavfile import write
 
-from PySide6.QtCore import QEasingCurve, QPropertyAnimation, Qt, QThread, Signal, QSize
+from PySide6.QtCore import QEasingCurve, QPropertyAnimation, Qt, QThread, Signal, QSize, QTimer
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import (
     QApplication, QFileDialog, QHBoxLayout, QListWidgetItem, QMessageBox,
-    QSplitter, QWidget, QStackedWidget, QPushButton, QVBoxLayout
+    QSplitter, QWidget, QStackedWidget, QPushButton, QVBoxLayout, QLabel
 )
 
 from services.autosave import Autosaver
@@ -33,8 +33,10 @@ from ui.editor import EditorPanel
 from ui.sidebar_rail import SidebarRail
 from ui.sidebar_songs import SongsSidebar
 from ui.sidebar_tools import ToolsSidebar
+from ui.timer import FloatingTimer
 from online_features import LyricalLabAPI  # file
 from services.online_gate import OnlineFeatureGate
+
 
 from recorder import VoiceRecorder
 
@@ -125,6 +127,21 @@ class MProsody(QWidget):
         self._build_sidebars()
         self._build_splitter_layout()
 
+       # writing time tracker
+        self.writing_timer = FloatingTimer(parent=None, start_seconds=0)
+        self.writing_timer.show()
+        self.writing_timer.move(40, 40)
+        
+        # inactivity detection for pausing
+        self.inactivity_timer = QTimer()
+        self.inactivity_timer.timeout.connect(self.pause_writing_timer)
+        self.inactivity_timeout = 5000  # pause after 5 seconds of inactivity
+        
+        # connect editor changes to track writing activity
+        self.editor.writing_editor.textChanged.connect(self.on_writing_activity)
+
+        
+         
         # apply prefs/theme/font + restore autosave
         self.init_wrapper()
 
@@ -232,6 +249,31 @@ class MProsody(QWidget):
         self.main_splitter.addWidget(self.editor)
         self.main_splitter.setSizes([340, 900])
         self.main_layout.addWidget(self.main_splitter)
+
+    def toggle_timer(self):
+        if self.timer.isVisible():
+            self.timer.hide()
+        else:
+            self.timer.show()
+            self.timer.raise_()
+
+    def on_writing_activity(self):
+        """Called whenever user types in the editor."""
+        self.writing_timer.start()
+        self.inactivity_timer.stop()
+        self.inactivity_timer.start(self.inactivity_timeout)
+
+    def pause_writing_timer(self):
+        """Pause timer after inactivity."""
+        self.inactivity_timer.stop()
+        self.writing_timer.pause()
+
+    def toggle_timer(self):
+        if self.writing_timer.isVisible():
+            self.writing_timer.hide()
+        else:
+            self.writing_timer.show()
+            self.writing_timer.raise_()
 
     # Sidebar behaviors
     def set_sidebar_mode(self, mode: int) -> None:
@@ -439,6 +481,7 @@ class MProsody(QWidget):
     def update_syllable_counts(self):
         lines = self.editor.writing_editor.toPlainText().splitlines()
         results = []
+        # print ("you're writing")
         for line in lines:
             words = line.split()
             results.append(f"{line}({sum(self.syllable_count(w) for w in words)})")
@@ -458,7 +501,7 @@ class MProsody(QWidget):
             self.songs.add_item(QListWidgetItem(f"{songs.get('message', 'DB error')}"))
             return
 
-        q = (query or "").strip().lower()
+        q = (query or "").strip().lower()   
         for row in songs:
             if len(row) < 7:
                 continue
@@ -507,9 +550,10 @@ class MProsody(QWidget):
             mood=self.editor.song_mood_input.text().strip(),
             lyrics=lyrics,
         )
-
+        # print(f"current song id: {self.current_song_id}")
         if self.current_song_id is not None:
             msg = self.library.update_song(self.current_song_id, song)
+            self.new_song_saved.emit()
         else:
             msg = self.library.create_song(song)
 

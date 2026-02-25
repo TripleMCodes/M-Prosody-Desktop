@@ -35,12 +35,12 @@ class LyricsLibrary:
         return self.db.save_new_song(song.__dict__)
 
     def update_song(self, song_id: int, song: Song) -> Dict[str, Any]:
-        return self.db.update_song(song_id, song.__dict__)
+        return self.db.update_song(song.__dict__, song_id)
 
 
 
 testing = LyricsLibrary()
 
 
-lst = testing.list_songs()
-print(lst)
+# lst = testing.list_songs()
+# print(lst)
