@@ -53,7 +53,7 @@ dic = pyphen.Pyphen(lang="en")
 
 class RecorderThread(QThread):
     finished = Signal(str)
-
+    
     def __init__(self, duration=0, samplerate=44100, song="recording"):
         super().__init__()
         self.duration = duration
@@ -92,6 +92,8 @@ class SidebarMode:
 class MProsody(QWidget):
     theme_changed_signal = Signal(str)
     new_song_saved = Signal()
+    recorded_writing_time = Signal(int) #seconds
+
 
     def __init__(self):
         super().__init__()
@@ -131,20 +133,21 @@ class MProsody(QWidget):
         self.writing_timer = FloatingTimer(parent=None, start_seconds=0)
         self.writing_timer.show()
         self.writing_timer.move(40, 40)
+
+        #activate/deactivates timers
+        self.timer_active = False
+
         
         # inactivity detection for pausing
         self.inactivity_timer = QTimer()
         self.inactivity_timer.timeout.connect(self.pause_writing_timer)
-        self.inactivity_timeout = 5000  # pause after 5 seconds of inactivity
+        self.inactivity_timeout = 10000  # pause after 5 seconds of inactivity
         
-        # connect editor changes to track writing activity
-        self.editor.writing_editor.textChanged.connect(self.on_writing_activity)
-
-        
-         
         # apply prefs/theme/font + restore autosave
         self.init_wrapper()
 
+        # connect editor changes to track writing activity
+        self.editor.writing_editor.textChanged.connect(self.on_writing_activity)
 
         self.api = LyricalLabAPI()
         self.online_gate = OnlineFeatureGate(self.api, parent_window=self)
@@ -259,14 +262,20 @@ class MProsody(QWidget):
 
     def on_writing_activity(self):
         """Called whenever user types in the editor."""
-        self.writing_timer.start()
-        self.inactivity_timer.stop()
+        if not self.timer_active:
+            return
+        
+        if not self.writing_timer.running:   
+            self.writing_timer.start()            # or resume
+
+        # Restart the inactivity countdown
         self.inactivity_timer.start(self.inactivity_timeout)
 
     def pause_writing_timer(self):
         """Pause timer after inactivity."""
         self.inactivity_timer.stop()
         self.writing_timer.pause()
+        self.recorded_writing_time.emit(self.writing_timer.total_seconds)
 
     def toggle_timer(self):
         if self.writing_timer.isVisible():
@@ -348,6 +357,7 @@ class MProsody(QWidget):
                 ed.setText(last)
 
         self.openning_app = False
+        self.timer_active = True
 
     def apply_theme(self):
         # cycle theme
@@ -415,13 +425,13 @@ class MProsody(QWidget):
             fos = self.tools.figure_of_speech.currentText()
             raw_output = self.generation.generate_fos(user_prompt, fos)
             if raw_output is None:
-                self.editor.display_editor.setText("⚠️ API request failed, couldn't generate output")
+                self.editor.display_editor.setText("API request failed, couldn't generate output")
                 return
 
             numbered_items = "".join(
                 f"<li>{line.strip()}</li>" for line in raw_output.splitlines() if line.strip()
             )
-            formatted = f"✨ <b>{fos} Suggestions for '{user_prompt}':</b><br><br><ol>{numbered_items}</ol>"
+            formatted = f"<b>{fos} Suggestions for '{user_prompt}':</b><br><br><ol>{numbered_items}</ol>"
             self.editor.display_editor.setHtml(formatted)
 
         self.tools.prompt_area.clear()
@@ -490,9 +500,7 @@ class MProsody(QWidget):
     def autosave(self):
         self.autosaver.maybe_save(self.editor.writing_editor.toPlainText())
 
-    # -------------------------
     # Songs sidebar + DB
-    # -------------------------
     def refresh_song_list(self, query: str):
         self.songs.clear()
 
@@ -550,7 +558,7 @@ class MProsody(QWidget):
             mood=self.editor.song_mood_input.text().strip(),
             lyrics=lyrics,
         )
-        # print(f"current song id: {self.current_song_id}")
+       
         if self.current_song_id is not None:
             msg = self.library.update_song(self.current_song_id, song)
             self.new_song_saved.emit()
@@ -564,9 +572,7 @@ class MProsody(QWidget):
         else:
             QMessageBox.critical(self, "Error", msg.get("message", "Something went wrong."))
 
-    # -------------------------
     # Misc actions
-    # -------------------------
     def open_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "open file", "", "Text Files (*.txt);;(*.html);;(*.csv);;(*.py);;(*.md)")
         if not file_name:

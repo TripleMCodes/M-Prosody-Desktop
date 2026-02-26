@@ -6,7 +6,6 @@ from PySide6.QtWidgets import (
 )
 from typing import Optional, Callable, List, Any, Dict
 from pathlib import Path
-# from ui.glass_qss import GLASS_QSS
 from ui.notifications import NotificationToast
 from services.glass_builder import glass_card
 from services.models import Note, SongPreview
@@ -14,11 +13,7 @@ from services.preferences import ThemeManager, Preferences
 from stats_db import Stats
 from autodidex_cache import DictionaryCache
 from themes_db import Themes
-
-# themes = Themes()
-# cache = DictionaryCache()
-
-
+from ui.stats_chart import WritingStatsChart
 
 CONFIG_FILE = Path(__file__).parent.parent / "noteworthy files/config.json"
 
@@ -38,11 +33,11 @@ class LLDashboard(QWidget):
         self.theme_mgr = ThemeManager()
         self.theme_mgr.load_themes()
         prefs = self.prefs.load()
+        self.stats = Stats()
         self.theme = prefs.theme
 
         self.setStyleSheet(self.theme_mgr.stylesheet_for(self.theme))
-        # print(cache.get("theme"))
-
+    
         # callbacks (inject from app)
         self.on_open_studio: Optional[Callable[[], None]] = None
         self.on_fetch_rhymes: Optional[Callable[[str], List[str]]] = None
@@ -67,6 +62,9 @@ class LLDashboard(QWidget):
 
         # Toast
         self.toast = NotificationToast(self)
+        self.chart = WritingStatsChart(self.stats)
+        self.chart.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.chart.setMinimumHeight(360)
 
         # Content
         self._build_left_content()
@@ -77,9 +75,7 @@ class LLDashboard(QWidget):
         self.set_draft(artist="", title="", album="")
         self.set_recent_songs([])
 
-    # -----------------------------
     # Panels
-    # -----------------------------
     def _build_panel(self) -> QFrame:
         panel = QFrame()
         panel.setObjectName("GlassPanel")
@@ -112,9 +108,7 @@ class LLDashboard(QWidget):
     def _right_layout(self) -> QVBoxLayout:
         return self.right_panel._inner_layout
 
-    # -----------------------------
     # Left content: Search / Scratchpad / RimeSearch
-    # -----------------------------
     def _build_left_content(self):
         lay = self._left_layout()
 
@@ -201,9 +195,7 @@ class LLDashboard(QWidget):
         lay.addWidget(rs_card)
         lay.addStretch(1)
 
-    # -----------------------------
     # Right content: Stats / Workspace
-    # -----------------------------
     def _build_right_content(self):
         lay = self._right_layout()
 
@@ -212,8 +204,8 @@ class LLDashboard(QWidget):
         stats_row = QHBoxLayout()
         stats_row.setSpacing(10)
 
-        self.stat_writing_time = self._stat_tile("Writing time", "0")
-        self.stat_sessions = self._stat_tile("Sessions", "0")
+        self.stat_writing_time = self._stat_tile("(recent)Writing time", "0")
+        self.stat_sessions = self._stat_tile("(recent)Sessions", "0")
         self.stat_new_songs = self._stat_tile("New songs", "0")
         self.stat_num_songs = self._stat_tile("Total songs", "0")
 
@@ -223,10 +215,13 @@ class LLDashboard(QWidget):
         stats_row.addWidget(self.stat_num_songs)
 
         st.addLayout(stats_row)
-        lay.addWidget(st_card)
-
         
+        # chart_layout = QHBoxLayout()
+        # chart_layout.addWidget(chart)
 
+        lay.addWidget(st_card)
+        lay.addWidget(self.chart, 1) 
+        
         # Workspace
         ws_card, ws, _ = glass_card("Workspace")
 
@@ -271,10 +266,8 @@ class LLDashboard(QWidget):
 
         tile._value_label = v
         return tile
-
-    # -----------------------------
-    # Public setters (bind-like)
-    # -----------------------------
+    
+    # Public setters
     def set_stats(self, writing_time: int, writing_sessions: int, new_songs: int, num_songs: int):
         self.stat_writing_time._value_label.setText(str(writing_time))
         self.stat_sessions._value_label.setText(str(writing_sessions))
@@ -297,15 +290,35 @@ class LLDashboard(QWidget):
                 parts.append(f"({album})")
             self.draft_meta.setText(" ".join(parts))
 
-    def get_stats(self):
-        stats = Stats()
+    def update_stats(self):
+        
         writing_time, sessions, songs_num, total_songs_num = self.on_get_stats()
 
-        res = stats.add_session(sessions)
+        m = writing_time // 60
+        s = writing_time % 60
+        writing_time = f"{m:02d}:{s:02d} min"
+
+        res = self.stats.add_session(sessions)
         sessions = res.get("new_ses", sessions)
         self.set_stats(writing_time=writing_time, writing_sessions=sessions, new_songs=songs_num, num_songs=total_songs_num)
+        self.chart.fetch_data()
 
+    def save_writing_time(self, seconds):
+                
+        res = self.stats.add_writing_time(seconds)
 
+        if res.get("status"):
+            writing_time, sessions, songs_num, total_songs_num = self.on_get_stats()
+
+            m = writing_time // 60
+            s = writing_time % 60
+            writing_time = f"{m:02d}:{s:02d} min"
+
+            self.set_stats(writing_time=writing_time, writing_sessions=sessions, new_songs=songs_num, num_songs=total_songs_num)
+            self.chart.refresh()
+            print(f"writing time: {seconds}")
+        
+        self.toast.show_toast(res.get("message"), "error")
 
     def set_recent_songs(self, songs: List[SongPreview]):
         self.recent_songs_list.clear()
@@ -434,16 +447,13 @@ class LLDashboard(QWidget):
        
 
     def _noop_search(self):
-        # placeholder: you can hook this into your local DB search or API
         q = self.search_input.text().strip()
         if not q:
             self.toast.show_toast("Type something to search.", "info")
         else:
             self.toast.show_toast(f"Searching for “{q}”… (wire handler)", "info")
 
-    # -----------------------------
     # Keep toast positioned on resize
-    # -----------------------------
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.toast.isVisible():

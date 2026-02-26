@@ -1,83 +1,144 @@
-import sys
+from __future__ import annotations
 
-from PySide6.QtCore import QPointF, QDate
+from dataclasses import dataclass
+from datetime import datetime, date
+from typing import List, Tuple, Optional
+
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QMainWindow, QApplication
-from PySide6.QtCharts import QChart, QChartView, QLineSeries
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+
+from PySide6.QtCharts import (
+    QChart,
+    QChartView,
+    QDateTimeAxis,
+    QValueAxis,
+    QLineSeries,
+)
+from PySide6.QtCore import QDateTime
+
+@dataclass(frozen=True)
+class WritingStatRow:
+    writing_time: int  
+    sessions: int
+    created_at: date
 
 
-class TestChart(QMainWindow):
+class WritingStatsChart(QWidget):
+    """
+    Charts:
+      - Sessions per day (left Y axis)
+      - Writing time per day (right Y axis)
+    X axis: date
+    """
+
     def __init__(self, stats):
         super().__init__()
 
-        self.stats_data = stats
-        self.x = 0
-
-        self.series = QLineSeries()
-        self.series_2 = QLineSeries()
-        # self.series.append(0, 6)
-        # self.series.append(2, 4)
-        # self.series.append(3, 8)
-        # self.series.append(7, 4)
-        # self.series.append(10, 5)
-
-        self.series_2.append(0, 2)
-        self.series_2.append(2, 4)
-        self.series_2.append(3, 6)
-        self.series_2.append(7, 8)
-        self.series_2.append(10, 10)
-
-        for i in range(0, len(self.stats_data)):
-            self.series.append(i, self.stats_data[i][1])
-            print(self.stats_data[i][1])
-            print(i)
+        self.title = QLabel("Writing Stats (Sessions & Writing Time)")
+        self.title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         self.chart = QChart()
-        self.chart.legend().hide()
+        self.chart.setAnimationOptions(QChart.SeriesAnimations)
+        self.chart.legend().setVisible(True)
+        self.chart.legend().setAlignment(Qt.AlignBottom)
 
-        # for i in range(0, len(self.stats_data)):
-        #     self.chart.setAxisX(i)
+        self.chart_view = QChartView(self.chart)
+        self.chart_view.setRenderHint(QPainter.Antialiasing)
 
-        self.chart.addSeries(self.series)
-        self.chart.addSeries(self.series_2)
-        self.chart.createDefaultAxes()
-        self.chart.setTitle("Stats Chart")
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.title)
+        layout.addWidget(self.chart_view)
 
-        self._chart_view = QChartView(self.chart)
-        self._chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # Series
+        self.series_sessions = QLineSeries()
+        self.series_sessions.setName("Sessions")
 
-        self.setCentralWidget(self._chart_view)
+        self.series_time = QLineSeries()
+        self.series_time.setName("Writing Time")
 
-        # self.load_stats_data()
+        # Axes
+        self.axis_x = QDateTimeAxis()
+        self.axis_x.setFormat("yyyy-MM-dd")
+        self.axis_x.setTitleText("Date")
 
-    def load_stats_data(self):
-        # for i in range(0, len(self.stats_data)):
-        #     self.series.append(self.stats_data[i][1], i)
-        #     print(self.stats_data[i][1])
-        #     print(i)
-            # print(stat)
-            # print(stat[1])
-            # print(stat[3])
-        self.series.append(0, 6)
-        self.series.append(2, 4)
-        self.series.append(3, 8)
-        self.series.append(7, 4)
-        self.series.append(10, 5)
+        self.axis_y_left = QValueAxis()
+        self.axis_y_left.setTitleText("Sessions")
+        self.axis_y_left.setLabelFormat("%d")
+        self.axis_y_left.setMin(0)
 
-        # for stat in self.stats_data:
-        #     self.series_2.append(stat[2], QDate(stat[3]))
-            # print(stat)
-            # print(stat[2])
-            # print(stat[3])
+        self.axis_y_right = QValueAxis()
+        self.axis_y_right.setTitleText("Writing Time")
+        self.axis_y_right.setLabelFormat("%d")
+        self.axis_y_right.setMin(0)
 
-        
+        # Put chart together
+        self.chart.addSeries(self.series_sessions)
+        self.chart.addSeries(self.series_time)
 
+        self.chart.addAxis(self.axis_x, Qt.AlignBottom)
+        self.chart.addAxis(self.axis_y_left, Qt.AlignLeft)
+        self.chart.addAxis(self.axis_y_right, Qt.AlignRight)
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    stats = [(1, 3, 4, '2026-02-19', 1), (2, 3, 4, '2026-02-18', 1), (3, 5, 6, '2026-02-17', 1), (4, 2, 1, '2026-02-16', 1)]
+        self.series_sessions.attachAxis(self.axis_x)
+        self.series_sessions.attachAxis(self.axis_y_left)
 
-    window = TestChart(stats=stats)
-    window.show()
-    window.resize(440, 300)
-    sys.exit(app.exec())
+        self.series_time.attachAxis(self.axis_x)
+        self.series_time.attachAxis(self.axis_y_right)
+
+        self.stats = stats
+
+        # Initial render
+        self.refresh()
+
+    def fetch_data(self, local_profile_id: int = 1) -> List[WritingStatRow]:
+        raw_rows = self.stats.get_stats()
+
+        rows: List[WritingStatRow] = []
+        for _id, writing_time, sessions, created_at, pid in raw_rows:
+            if pid != local_profile_id:
+                continue
+            d = datetime.strptime(created_at, "%Y-%m-%d").date()
+            rows.append(WritingStatRow(writing_time=writing_time, sessions=sessions, created_at=d))
+
+        # sort by date ascending for a nice line
+        rows.sort(key=lambda r: r.created_at)
+        return rows
+
+    # Chart rendering
+    def refresh(self, local_profile_id: int = 1):
+        rows = self.fetch_data(local_profile_id=local_profile_id)
+
+        # Clear old points
+        self.series_sessions.clear()
+        self.series_time.clear()
+
+        if not rows:
+            self.chart.setTitle("No data")
+            return
+
+        # Convert dates to milliseconds since epoch via QDateTime
+        # Use noon time to avoid DST edge weirdness
+        xs: List[QDateTime] = []
+        max_sessions = 0
+        max_time = 0
+
+        for r in rows:
+            qdt = QDateTime(r.created_at.year, r.created_at.month, r.created_at.day, 12, 0, 0)
+            x = qdt.toMSecsSinceEpoch()
+            xs.append(qdt)
+
+            self.series_sessions.append(x, r.sessions)
+            self.series_time.append(x, r.writing_time)
+
+            max_sessions = max(max_sessions, r.sessions)
+            max_time = max(max_time, r.writing_time)
+
+        # X range
+        self.axis_x.setRange(xs[0], xs[-1])
+
+        # Y ranges with a little headroom
+        self.axis_y_left.setMax(max(1, int(max_sessions * 1.2)))
+        self.axis_y_right.setMax(max(1, int(max_time * 1.2)))
+
+        self.chart.setTitle("Writing Stats")
