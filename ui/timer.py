@@ -36,42 +36,34 @@ class FloatingTimer(QWidget):
             QLabel {
                 color: #f5e9ff;
                 font-weight: 700;
-                font-size: 16px;
-                padding: 8px 10px;
-                border-radius: 12px;
-                background: rgba(18, 0, 24, 200);
-                border: 1px solid rgba(168, 85, 247, 120);
+                font-size: 24px;                  
+                padding: 14px 18px;              
+                border-radius: 16px;
+                /* light neon purple background for visibility */
+                background: rgba(180, 0, 255, 180);
+                border: 2px solid rgba(200, 100, 255, 200);
+                /* a soft but noticeable glow for the neon effect */
+                box-shadow: 0 0 12px rgba(200, 100, 255, 160);
             }
         """)
 
-        self.btn_start = QPushButton("▶")
-        self.btn_pause = QPushButton("⏸")
-        self.btn_reset = QPushButton("↺")
         self.btn_close = QPushButton("✕")
-
-        for b in (self.btn_start, self.btn_pause, self.btn_reset, self.btn_close):
-            b.setFixedSize(32, 32)
-            b.setStyleSheet("""
-                QPushButton {
-                    background: rgba(168, 85, 247, 120);
-                    border: 1px solid rgba(168, 85, 247, 140);
-                    border-radius: 10px;
-                    font-weight: 700;
-                    color: #f5e9ff;
-                }
-                QPushButton:hover { background: rgba(199, 125, 255, 150); }
-                QPushButton:pressed { background: rgba(124, 58, 237, 160); }
+        self.btn_close.setFixedSize(32, 32)
+        self.btn_close.setStyleSheet("""
+            QPushButton {
+                background: rgba(168, 85, 247, 120);
+                border: 1px solid rgba(168, 85, 247, 140);
+                border-radius: 10px;
+                font-weight: 700;
+                color: #f5e9ff;
+            }
+            QPushButton:hover { background: rgba(199, 125, 255, 150); }
+            QPushButton:pressed { background: rgba(124, 58, 237, 160); }
             """)
 
-        self.btn_start.clicked.connect(self.start)
-        self.btn_pause.clicked.connect(self.pause)
-        self.btn_reset.clicked.connect(self.reset)
         self.btn_close.clicked.connect(self._close)
 
         root.addWidget(self.label)
-        root.addWidget(self.btn_start)
-        root.addWidget(self.btn_pause)
-        root.addWidget(self.btn_reset)
         root.addWidget(self.btn_close)
 
         # --- timer driver ---
@@ -106,10 +98,8 @@ class FloatingTimer(QWidget):
         return f"{m:02d}:{s:02d}"
 
     def _close(self):
-        self.pause()
         self.hide()
-        self.closed.emit()
-
+       
     # -------- drag to move --------
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
