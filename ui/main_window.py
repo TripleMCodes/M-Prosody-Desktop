@@ -188,6 +188,7 @@ class MProsody(QWidget):
             on_flip=self.flip_sidebar_face,
             on_refresh=self.refresh_song_list,
             on_item_clicked=self.on_song_clicked,
+            on_delete=self.on_delete_song,
         )
 
         # stacked (tools/songs)
@@ -534,6 +535,25 @@ class MProsody(QWidget):
         self.current_song_id = song_id
         self.editor.load_song_fields(title or "", artist or "", album or "", genre or "", mood or "")
         self.editor.load_lyrics(lyrics or "")
+
+    def on_delete_song(self, song_id: int) -> None:
+        """Delete a song and refresh the list."""
+        reply = QMessageBox.question(
+            self,
+            "Delete Song",
+            "Are you sure you want to delete this song?",
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        if reply == QMessageBox.Yes:
+            result = self.library.delete_song(song_id)
+            if result.get("state"):
+                self.refresh_song_list(self.songs.query())
+                if self.current_song_id == song_id:
+                    self.editor.load_song_fields("", "", "", "", "")
+                    self.editor.load_lyrics("")
+                    self.current_song_id = None
+            else:
+                QMessageBox.warning(self, "Error", result.get("message", "Failed to delete song"))
 
     def save_file(self) -> None:
         lyrics = self.editor.writing_editor.toPlainText().strip()

@@ -8,8 +8,9 @@ from typing import Callable, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QAbstractItemView, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QPushButton, QVBoxLayout, QWidget
+    QPushButton, QVBoxLayout, QWidget, QMenu
 )
+from PySide6.QtGui import QAction
 
 
 class SongsSidebar(QWidget):
@@ -18,9 +19,11 @@ class SongsSidebar(QWidget):
         on_flip: Callable[[], None],
         on_refresh: Callable[[str], None],
         on_item_clicked: Callable[[QListWidgetItem], None],
+        on_delete: Callable[[int], None],
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
+        self.on_delete = on_delete
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -55,6 +58,8 @@ class SongsSidebar(QWidget):
         self.list = QListWidget()
         self.list.setSelectionMode(QAbstractItemView.SingleSelection)
         self.list.itemClicked.connect(on_item_clicked)
+        self.list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.list.customContextMenuRequested.connect(self._show_context_menu)
         layout.addWidget(self.list, stretch=1)
 
     def clear(self) -> None:
@@ -65,3 +70,22 @@ class SongsSidebar(QWidget):
 
     def query(self) -> str:
         return self.search.text()
+
+    def _show_context_menu(self, position) -> None:
+        """Show context menu on right-click."""
+        item = self.list.itemAt(position)
+        if not item:
+            return
+        
+        menu = QMenu(self)
+        delete_action = QAction("Delete", self)
+        delete_action.triggered.connect(lambda: self._delete_song(item))
+        menu.addAction(delete_action)
+        menu.exec(self.list.mapToGlobal(position))
+
+    def _delete_song(self, item: QListWidgetItem) -> None:
+        """Delete a song by its item."""
+        row = item.data(Qt.UserRole)
+        if row and len(row) > 0:
+            song_id = row[0]
+            self.on_delete(song_id)

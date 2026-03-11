@@ -12,7 +12,7 @@ def run():
     p = subprocess.Popen(APP_ENTRY)
 
     try:
-        for changes in watch(".", watch_filter=lambda c: c.endswith((".py", ".qss", ".ui"))):
+        for changes in watch(".", watch_filter=lambda path, _: str(path).endswith((".py", ".qss", ".ui"))):
             print("Change detected, restarting:", changes)
             p.terminate()
             try:

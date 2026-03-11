@@ -80,9 +80,9 @@ class FloatingTimer(QWidget):
         self.running = False
         self.ticker.stop()
 
-    def reset(self):
-        self.total_seconds = 0
-        self.label.setText(self._format(self.remaining))
+    # def reset(self):
+    #     self.total_seconds = 0
+    #     self.label.setText(self._format(self.remaining))
 
     def set_duration_minutes(self, minutes: int):
         self.total_seconds = max(1, minutes) * 60

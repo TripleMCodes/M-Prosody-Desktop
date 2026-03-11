@@ -37,6 +37,11 @@ class LyricsLibrary:
     def update_song(self, song_id: int, song: Song) -> Dict[str, Any]:
         return self.db.update_song(song.__dict__, song_id)
 
+    def delete_song(self, song_id: int) -> Dict[str, Any]:
+        return self.db.delete_song(song_id)
+
+    
+
 
 
 testing = LyricsLibrary()
