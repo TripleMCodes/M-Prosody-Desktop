@@ -34,6 +34,7 @@ from ui.sidebar_rail import SidebarRail
 from ui.sidebar_songs import SongsSidebar
 from ui.sidebar_tools import ToolsSidebar
 from ui.timer import FloatingTimer
+from ui.versions_window import VersionsWindow
 from online_features import LyricalLabAPI  # file
 from services.online_gate import OnlineFeatureGate
 
@@ -189,6 +190,7 @@ class MProsody(QWidget):
             on_refresh=self.refresh_song_list,
             on_item_clicked=self.on_song_clicked,
             on_delete=self.on_delete_song,
+            on_view_versions=self.view_song_versions,
         )
 
         # stacked (tools/songs)
@@ -554,6 +556,15 @@ class MProsody(QWidget):
                     self.current_song_id = None
             else:
                 QMessageBox.warning(self, "Error", result.get("message", "Failed to delete song"))
+
+    def view_song_versions(self, song_id: int) -> None:
+        """Open a window showing versions of the song."""
+        versions = self.library.get_song_versions(song_id)
+        if versions:
+            window = VersionsWindow(versions, self)
+            window.exec()
+        else:
+            QMessageBox.information(self, "No Versions", "This song has no older versions.")
 
     def save_file(self) -> None:
         lyrics = self.editor.writing_editor.toPlainText().strip()

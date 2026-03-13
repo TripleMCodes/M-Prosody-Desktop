@@ -40,7 +40,8 @@ class LyricsLibrary:
     def delete_song(self, song_id: int) -> Dict[str, Any]:
         return self.db.delete_song(song_id)
 
-    
+    def get_song_versions(self, song_id: int) -> List[Tuple]:
+        return self.db.get_song_versions(song_id)
 
 
 

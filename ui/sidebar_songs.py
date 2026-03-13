@@ -20,10 +20,12 @@ class SongsSidebar(QWidget):
         on_refresh: Callable[[str], None],
         on_item_clicked: Callable[[QListWidgetItem], None],
         on_delete: Callable[[int], None],
+        on_view_versions: Callable[[int], None],
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.on_delete = on_delete
+        self.on_view_versions = on_view_versions
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -78,6 +80,10 @@ class SongsSidebar(QWidget):
             return
         
         menu = QMenu(self)
+        view_versions_action = QAction("View Versions", self)
+        view_versions_action.triggered.connect(lambda: self._view_versions(item))
+        menu.addAction(view_versions_action)
+        
         delete_action = QAction("Delete", self)
         delete_action.triggered.connect(lambda: self._delete_song(item))
         menu.addAction(delete_action)
@@ -87,5 +93,12 @@ class SongsSidebar(QWidget):
         """Delete a song by its item."""
         row = item.data(Qt.UserRole)
         if row and len(row) > 0:
-            song_id = row[0]
+            song_id = int(row[0])
             self.on_delete(song_id)
+
+    def _view_versions(self, item: QListWidgetItem) -> None:
+        """View versions of a song."""
+        row = item.data(Qt.UserRole)
+        if row and len(row) > 0:
+            song_id = int(row[0])
+            self.on_view_versions(song_id)

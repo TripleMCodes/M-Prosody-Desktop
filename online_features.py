@@ -116,7 +116,7 @@ class LyricalLabAPI:
                     timeout=5
                 )
             else:
-                print("signing up...")
+                # print("signing up...")
                 resp = requests.post(
                     url,
                     json=data, 
@@ -124,9 +124,9 @@ class LyricalLabAPI:
                     timeout=5
                 )
 
-            if not resp.ok:
-                print("Status:", resp.status_code)
-                print("Response:", resp.text)
+            # if not resp.ok:
+                # print("Status:", resp.status_code)
+                # print("Response:", resp.text)
 
             if resp.status_code == 401 and access_token_required:
                 if self.token.refresh_access():
@@ -136,7 +136,7 @@ class LyricalLabAPI:
                     logging.debug("Login required for online features")
                     return None
 
-            print("Done")
+            # print("Done")
             return resp.json()
 
         except requests.RequestException as e:

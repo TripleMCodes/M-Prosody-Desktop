@@ -117,31 +117,7 @@ class Lyrics():
         except sqlite3.DatabaseError as e:
             logging.debug(e)
             return {"message": "Error - Please try again", "state": False}
-    # def save_new_song(self, data:dict) -> dict | None | sqlite3.Error:
-    #     """
-    #         Save new song.
-    #         title, artist, lyircs are necessary,
-    #         mood, album, genre are optional
-    #     """
-    #     title, artist, lyrics, mood, genre, album = self._destructure_dict(data)
-
-    #     query = f"""
-    #                 INSERT INTO {self.lyrics_table} (title, artist, album, genre, mood, lyrics, local_profile_id) VALUES (?,?,?,?,?,?,?);
-    #             """
-        
-    #     is_unique = self._is_unique(str(title))
-    #     if isinstance(is_unique, bool):
-    #         if not is_unique:
-    #             return {"message": f"Song with '{title}' title already exists", "state": False}
-    #     elif isinstance(is_unique, dict):
-    #         return {"message": "Error - Please try again", "state": False}
-    #     try:
-    #         self.conn_cursor.execute(query, (title, artist, album, genre, mood, lyrics, self.local_id ))
-    #         self._commit_data()
-    #         return {"message": "Song saved successfully", "state": True}
-    #     except sqlite3.DatabaseError as e:
-    #         logging.debug(e)
-    #         return {"message": "Error - Please try again", "state": True}
+    
 #===================================update method(s)===============================================
 #==================================================================================================
 
@@ -266,33 +242,7 @@ class Lyrics():
             self.conn.rollback()
             logging.debug(e)
             return {"message": "Error - Please ensure to provide all required fields.", "state": False}
-    # def update_song(self, data:dict, id:int) -> dict:
-    #     """Update a particular song"""
-    #     title, artist, lyrics, mood, genre, album = self._destructure_dict(data)
-
-    #     query = f"""
-    #                UPDATE {self.lyrics_table}
-    #                 SET title = ?, artist = ?, 
-    #                 album = ?, genre = ?, 
-    #                 mood = ?, lyrics = ?
-    #                 WHERE id = ?;
-    #             """
-    #     # is_unique = self._is_unique(title)
-    #     # if isinstance(is_unique, bool):
-    #     #     if not is_unique:
-    #     #         return {"message": f"Song with '{title}' title already exists", "state": False}
-    #     # if isinstance(is_unique, dict):
-    #     #     return {"message": is_unique.get("message"), "state": False}
-    #     try:
-    #         self.conn_cursor.execute(query, (title, artist, album, genre, mood, lyrics, id,))
-    #         self._commit_data()
-    #         return {"message": "Song successfully updated", "state": True}
-    #     except sqlite3.DatabaseError as e:
-    #         logging.debug(e)
-    #         return {"message": "Database Error - Please try again.", "state":False}
-    #     except sqlite3.DataError as e:
-    #         logging.debug(e)
-    #         return {"message": "Error - Please ensure to provide all required fields.", "state": False}
+    
 #===================================delete method(s)==========================================
 #====================================================================================================
     def delete_song(self, id:int) -> dict:
@@ -305,9 +255,11 @@ class Lyrics():
         :rtype: dict
         """
 
+        
+
         query = f"DELETE FROM {self.lyrics_table} WHERE id = ?;"
         try:
-            self.conn_cursor.execute(query, (id))
+            self.conn_cursor.execute(query, (id,))
             self._commit_data()
             return {"message": f"Song successfully deleted.", "state": True}
         except sqlite3.DatabaseError as e:
@@ -365,6 +317,22 @@ class Lyrics():
         except Exception as e:
             logging.debug(e)
             return {"message": "Error - Please try again"}
+        
+    def get_song_versions(self, song_id: int) -> list:
+        """Get all versions of a song."""
+        query = f"SELECT id, lyrics_id, version, lyrics, created_at, lyrics_hash, hash_algo FROM {self.lyrics_versions} WHERE lyrics_id = ? ORDER BY version DESC;"
+        try:
+            self.conn_cursor.execute(query, (song_id,))
+            versions = self.conn_cursor.fetchall()
+            print("versions")
+            print(versions)
+            return versions
+        except sqlite3.DatabaseError as e:
+            logging.debug(e)
+            return []
+        except Exception as e:
+            logging.debug(e)
+            return []
         
     def _destructure_dict(self, data : dict) -> str:
         """Destructure dict with song detail"""
