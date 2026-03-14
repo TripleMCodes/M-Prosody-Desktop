@@ -42,6 +42,12 @@ class LyricsLibrary:
 
     def get_song_versions(self, song_id: int) -> List[Tuple]:
         return self.db.get_song_versions(song_id)
+    
+    def get_song_by_id(self, song_id:int) -> tuple | None:
+        results =  self.db.get_song_by_id(song_id)
+        if results["status"]:
+            return results['message']
+        return None
 
 
 
@@ -50,3 +56,4 @@ testing = LyricsLibrary()
 
 # lst = testing.list_songs()
 # print(lst)
+# print(testing.get_song_by_id(2))

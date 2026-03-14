@@ -7,8 +7,10 @@ non-UI helpers live in services/*.
 from __future__ import annotations
 
 import logging
+import uuid
 from pathlib import Path
 from typing import Optional
+import requests
 
 import numpy as np
 import pyphen
@@ -191,6 +193,7 @@ class MProsody(QWidget):
             on_item_clicked=self.on_song_clicked,
             on_delete=self.on_delete_song,
             on_view_versions=self.view_song_versions,
+            on_upload_song=self.upload_song
         )
 
         # stacked (tools/songs)
@@ -537,6 +540,80 @@ class MProsody(QWidget):
         self.current_song_id = song_id
         self.editor.load_song_fields(title or "", artist or "", album or "", genre or "", mood or "")
         self.editor.load_lyrics(lyrics or "")
+
+    def upload_song(self, song_id:int):
+        if not self.online_gate.require_online("uploading songs"):
+            return
+
+        song_data = self.library.get_song_by_id(song_id)
+        if not song_data:
+            QMessageBox.warning(self, "Error", "Song not found.")
+            return
+
+        # print("###########")
+        # print(f"The song {song_data}")
+        # song_data: (id, title, artist, album, genre, mood, lyrics, version, lyrics_hash, hash_algo, local_profile_id, cloud_owner_user_id, cloud_song_id, cloud_status, created_at, updated_at, client_uid)
+        client_uid = song_data[16] if len(song_data) > 16 else None
+        if not client_uid:
+            client_uid = str(uuid.uuid4())
+            # Update local db
+            self.library.db.conn_cursor.execute("UPDATE lyrics_table SET client_uid = ? WHERE id = ?", (client_uid, song_id))
+            self.library.db._commit_data()
+
+
+        # Prepare data for API
+        data = {
+            "song_name": song_data[1],
+            "song_artist": song_data[2],
+            "song_album": song_data[3] or None,
+            "song_genre": song_data[4] or "Pop",
+            "song_mood": song_data[5] or None,
+            "song_lyrics": song_data[6],
+            "client_uid": client_uid,
+            "song_id": song_data[12] if song_data[12] else None  # cloud_song_id
+        }
+
+        # Send to API
+        # self.api.get_headers()
+        
+        try:
+            headers = self.api.get_headers()
+            print(headers)
+            # response = requests.post(" http://localhost:8000/api/lyric-tools/upload-song", headers={**headers, "Content-Type": "application/json"}, json=data, timeout=10)
+
+            headers = self.api.get_headers()
+
+            token = headers["Authorization"].split(" ")[1]
+
+            response = requests.post(
+                "http://localhost:8000/api/lyric-tools/upload-song",
+                cookies={"access_token": token},
+                json=data,
+                timeout=10
+            )
+
+            # response = self.api.call_endpoint("/api/lyric-tools/upload-song", data=data, access_token_required=True, login=True)
+            print(response.json())
+            if response.ok:
+                print(response)
+                result = response.json()['song']
+                cloud_song_id = result.get("song_id")
+                # Update local db
+                print(f"Cloud song ID: {cloud_song_id}")
+                self.library.db.conn_cursor.execute("""UPDATE lyrics_table
+            SET cloud_status = 'uploaded',
+                cloud_song_id = ?,
+                client_uid = COALESCE(client_uid, ?)
+            WHERE id = ?;""", (cloud_song_id, song_id, client_uid,))
+                self.library.db._commit_data()
+                QMessageBox.information(self, "Success", "Song uploaded successfully.")
+            else:
+                QMessageBox.warning(self, "Error", f"Upload failed: {response}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Upload failed: {str(e)}")
+
+        
+
 
     def on_delete_song(self, song_id: int) -> None:
         """Delete a song and refresh the list."""

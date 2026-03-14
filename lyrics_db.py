@@ -3,6 +3,7 @@ from pathlib import Path
 import hashlib
 from datetime import datetime, timedelta
 import logging
+import uuid
 logging.basicConfig(level=logging.DEBUG)
 
 class Lyrics():
@@ -15,6 +16,12 @@ class Lyrics():
         self.lyrics_table = "lyrics_table"
         self.lyrics_versions = "lyrics_versions"
         self.local_id = 1 #default
+        
+        # Add client_uid column if not exists
+        try:
+            self.conn_cursor.execute("ALTER TABLE lyrics_table ADD COLUMN client_uid TEXT")
+        except sqlite3.OperationalError:
+            pass  # column already exists
 #===============================================select method(s)======================================
 #=================================================================================================
     def get_all_songs(self) -> list | dict:
@@ -65,7 +72,21 @@ class Lyrics():
         except Exception as e:
             logging.debug(e)
             return {"message": "Error - Please try again."}
-        
+    
+    def get_song_by_id(self, id:int) -> dict:
+
+        query = f"SELECT * FROM {self.lyrics_table} where id = ?;"
+        try:
+            self.conn_cursor.execute(query, (id,))
+            song = self.conn_cursor.fetchone()
+            return {"message": song, "status": True}
+        except sqlite3.DatabaseError as e:
+            logging.debug(e)
+            return {"message": "Database Error - Please try again."}
+        except Exception as e:
+            logging.debug(e)
+            return {"message": "Error - Please try again."}
+
 
 #===============================================insert method(s)======================================
 #=====================================================================================================
@@ -86,13 +107,16 @@ class Lyrics():
 
         lyrics_hash = self._hash_lyrics(lyrics)
 
+        import uuid
+        client_uid = str(uuid.uuid4())
+
         query = f"""
             INSERT INTO {self.lyrics_table}
             (
                 title, artist, album, genre, mood, lyrics,
-                version, lyrics_hash, hash_algo, local_profile_id
+                version, lyrics_hash, hash_algo, local_profile_id, client_uid
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """
 
         try:
@@ -109,6 +133,7 @@ class Lyrics():
                     lyrics_hash,
                     "sha256",
                     self.local_id,
+                    client_uid,
                 ),
             )
             self._commit_data()
@@ -129,6 +154,8 @@ class Lyrics():
         if not current_song:
             return {"message": "Song not found.", "state": False}
 
+        print(current_song)
+
         (
             current_id,
             current_title,
@@ -139,8 +166,18 @@ class Lyrics():
             current_lyrics,
             current_version,
             current_lyrics_hash,
+            current_hash_alg,
+            local_profile_id,
+            clound_owner_user_id,
+            cloud_song_id,
             current_cloud_status,
+            created_at,
+            updated_at,
+            clent_uid
+
         ) = current_song
+
+
 
         new_lyrics_hash = self._hash_lyrics(lyrics)
         lyrics_changed = new_lyrics_hash != current_lyrics_hash
@@ -255,8 +292,6 @@ class Lyrics():
         :rtype: dict
         """
 
-        
-
         query = f"DELETE FROM {self.lyrics_table} WHERE id = ?;"
         try:
             self.conn_cursor.execute(query, (id,))
@@ -268,6 +303,8 @@ class Lyrics():
         except Exception as e:
             logging.debug(e)
             return {"message": "Error - Please try again", "state": False}
+
+    
 #===================================internal call method(s)==========================================
 #====================================================================================================
     
@@ -285,7 +322,7 @@ class Lyrics():
 
     def _get_song_by_id(self, song_id: int):
         query = f"""
-            SELECT id, title, artist, album, genre, mood, lyrics, version, lyrics_hash, cloud_status
+            SELECT id, title, artist, album, genre, mood, lyrics, version, lyrics_hash, hash_algo, local_profile_id, cloud_owner_user_id, cloud_song_id, cloud_status, created_at, updated_at, client_uid
             FROM {self.lyrics_table}
             WHERE id = ?;
         """
@@ -359,8 +396,36 @@ if __name__ == "__main__":
 
     l_lab = Lyrics()
 
-    print(l_lab.get_latest_songs_count().get('message')[0])
-    print(l_lab.get_all_songs_count())
+    # print(l_lab.get_latest_songs_count().get('message')[0])
+    # print(l_lab.get_all_songs_count())
+
+
+    song_data = l_lab.get_song_by_id(3)['message']
+
+    # print(song_data['message'])
+
+    client_uid = song_data[16] if len(song_data) > 16 else None
+    if not client_uid:
+        client_uid = str(uuid.uuid4())
+        print(client_uid)
+        # Update local db
+        # self.library.db.conn_cursor.execute("UPDATE lyrics_table SET client_uid = ? WHERE id = ?", (client_uid, song_id))
+        # self.library.db._commit_data()
+
+
+    # Prepare data for API
+    data = {
+        "song_name": song_data[1],
+        "song_artist": song_data[2],
+        "song_album": song_data[3] or None,
+        "song_genre": song_data[4] or "Pop",
+        "song_mood": song_data[5] or None,
+        "song_lyrics": song_data[6],
+        "client_uid": client_uid,
+        "song_id": song_data[12] if song_data[12] else None  # cloud_song_id
+    }
+
+    print(data)
     # print(l_lab.get_all_songs())
 
     # res = l_lab.save_new_song(song)
@@ -372,7 +437,7 @@ if __name__ == "__main__":
     # songs = l_lab.get_all_songs()
     # logging.debug(songs)
     # for song in songs:
-    #     logging.debug(song[0])
+    #     logging.debug(song[0])a
     #     logging.debug(song[1])
     #     logging.debug(song[2])
     #     logging.debug(song[3])

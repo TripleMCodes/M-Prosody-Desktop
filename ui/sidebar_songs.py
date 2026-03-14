@@ -21,11 +21,13 @@ class SongsSidebar(QWidget):
         on_item_clicked: Callable[[QListWidgetItem], None],
         on_delete: Callable[[int], None],
         on_view_versions: Callable[[int], None],
+        on_upload_song: Callable[[int], None],
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.on_delete = on_delete
         self.on_view_versions = on_view_versions
+        self.on_upload_song = on_upload_song
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -87,6 +89,11 @@ class SongsSidebar(QWidget):
         delete_action = QAction("Delete", self)
         delete_action.triggered.connect(lambda: self._delete_song(item))
         menu.addAction(delete_action)
+
+        upload_song_action = QAction("Upload", self)
+        upload_song_action.triggered.connect(lambda: self._upload_song(item))
+        menu.addAction(upload_song_action)
+        
         menu.exec(self.list.mapToGlobal(position))
 
     def _delete_song(self, item: QListWidgetItem) -> None:
@@ -102,3 +109,10 @@ class SongsSidebar(QWidget):
         if row and len(row) > 0:
             song_id = int(row[0])
             self.on_view_versions(song_id)
+
+    def _upload_song(self,  item: QListWidgetItem):
+        row = item.data(Qt.UserRole)
+        if row and len(row) > 0:
+            song_id = int(row[0])
+            # print(f"The song id: {song_id}")
+            self.on_upload_song(song_id)

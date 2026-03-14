@@ -103,7 +103,7 @@ class LyricalLabAPI:
         else:
             headers = {}
 
-        try:
+        try: 
             url = f"{API_BASE}{endpoint}"
 
             if login:
@@ -115,6 +115,7 @@ class LyricalLabAPI:
                     headers={**headers, "Content-Type": "application/x-www-form-urlencoded"},
                     timeout=5
                 )
+                print(resp.json())
             else:
                 # print("signing up...")
                 resp = requests.post(
@@ -124,6 +125,7 @@ class LyricalLabAPI:
                     timeout=5
                 )
 
+                print(resp.json())
             # if not resp.ok:
                 # print("Status:", resp.status_code)
                 # print("Response:", resp.text)
