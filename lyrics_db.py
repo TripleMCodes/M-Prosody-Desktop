@@ -280,6 +280,31 @@ class Lyrics():
             logging.debug(e)
             return {"message": "Error - Please ensure to provide all required fields.", "state": False}
     
+
+    def update_after_upload(self, owner_id, song_id, client_uid, id):
+
+        query = f"""UPDATE {self.lyrics_table}
+            SET cloud_status = 'uploaded',
+                cloud_owner_user_id = ?,
+                cloud_song_id = ?,
+                client_uid = COALESCE(client_uid, ?)
+            WHERE id = ?;"""
+
+        try:
+            self.conn_cursor.execute(query, (owner_id, song_id, client_uid, id,))
+            self._commit_data()
+            return {"message": "Song uploaded successfully.", "status": True}
+        
+        except sqlite3.DatabaseError as e:
+            self.conn.rollback()
+            logging.debug(e)
+            return {"message": "Database Error - Please try again.", "state": False}
+
+        except sqlite3.DataError as e:
+            self.conn.rollback()
+            logging.debug(e)
+            return {"message": "Error - Please ensure to provide all required fields.", "state": False}
+
 #===================================delete method(s)==========================================
 #====================================================================================================
     def delete_song(self, id:int) -> dict:
@@ -400,32 +425,36 @@ if __name__ == "__main__":
     # print(l_lab.get_all_songs_count())
 
 
-    song_data = l_lab.get_song_by_id(3)['message']
+    # song_data = l_lab.get_song_by_id(3)['message']
+
+    res = l_lab.update_after_upload(1, 2, "713300be-f9eb-4c6b-b4ba-bd77c2072bcd", 1)
+
+    print(res)
 
     # print(song_data['message'])
 
-    client_uid = song_data[16] if len(song_data) > 16 else None
-    if not client_uid:
-        client_uid = str(uuid.uuid4())
-        print(client_uid)
+    # client_uid = song_data[16] if len(song_data) > 16 else None
+    # if not client_uid:
+    #     client_uid = str(uuid.uuid4())
+    #     print(client_uid)
         # Update local db
         # self.library.db.conn_cursor.execute("UPDATE lyrics_table SET client_uid = ? WHERE id = ?", (client_uid, song_id))
         # self.library.db._commit_data()
 
 
     # Prepare data for API
-    data = {
-        "song_name": song_data[1],
-        "song_artist": song_data[2],
-        "song_album": song_data[3] or None,
-        "song_genre": song_data[4] or "Pop",
-        "song_mood": song_data[5] or None,
-        "song_lyrics": song_data[6],
-        "client_uid": client_uid,
-        "song_id": song_data[12] if song_data[12] else None  # cloud_song_id
-    }
+    # data = {
+    #     "song_name": song_data[1],
+    #     "song_artist": song_data[2],
+    #     "song_album": song_data[3] or None,
+    #     "song_genre": song_data[4] or "Pop",
+    #     "song_mood": song_data[5] or None,
+    #     "song_lyrics": song_data[6],
+    #     "client_uid": client_uid,
+    #     "song_id": song_data[12] if song_data[12] else None  # cloud_song_id
+    # }
 
-    print(data)
+    # print(data)
     # print(l_lab.get_all_songs())
 
     # res = l_lab.save_new_song(song)

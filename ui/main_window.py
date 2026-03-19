@@ -542,6 +542,7 @@ class MProsody(QWidget):
         self.editor.load_lyrics(lyrics or "")
 
     def upload_song(self, song_id:int):
+        
         if not self.online_gate.require_online("uploading songs"):
             return
 
@@ -549,10 +550,7 @@ class MProsody(QWidget):
         if not song_data:
             QMessageBox.warning(self, "Error", "Song not found.")
             return
-
-        # print("###########")
-        # print(f"The song {song_data}")
-        # song_data: (id, title, artist, album, genre, mood, lyrics, version, lyrics_hash, hash_algo, local_profile_id, cloud_owner_user_id, cloud_song_id, cloud_status, created_at, updated_at, client_uid)
+        
         client_uid = song_data[16] if len(song_data) > 16 else None
         if not client_uid:
             client_uid = str(uuid.uuid4())
@@ -573,51 +571,29 @@ class MProsody(QWidget):
             "song_id": song_data[12] if song_data[12] else None  # cloud_song_id
         }
 
-        # Send to API
-        # self.api.get_headers()
+        id = song_data[0]
         
         try:
-            # headers = self.api.get_headers()
-            # print(headers)
-            # response = requests.post(" http://localhost:8000/api/lyric-tools/upload-song", headers={**headers, "Content-Type": "application/json"}, json=data, timeout=10)
-
-            # headers = self.api.get_headers()
-
-            # token = headers["Authorization"].split(" ")[1]
-
-            # response = requests.post(
-            #     "http://localhost:8000/api/lyric-tools/upload-song",
-            #     cookies={"access_token": token},
-            #     json=data,
-            #     timeout=10
-            # )
-
             response = self.api.upload_song(data)
 
-            # response = self.api.call_endpoint("/api/lyric-tools/upload-song", data=data, access_token_required=True, login=True)
-            # print(response.json())
             if response.ok:
-                print(response)
                 result = response.json()['song']
                 cloud_song_id = result.get("song_id")
                 owner_id = result.get("user_id")
                 # Update local db
-                print(f"Cloud song ID: {cloud_song_id}")
-                self.library.db.conn_cursor.execute("""UPDATE lyrics_table
-            SET cloud_status = 'uploaded',
-                cloud_owner_user_id = ?,
-                cloud_song_id = ?,
-                client_uid = COALESCE(client_uid, ?)
-            WHERE id = ?;""", (owner_id, cloud_song_id, song_id, client_uid,))
-                self.library.db._commit_data()
-                QMessageBox.information(self, "Success", "Song uploaded successfully.")
+                # print(response.json())
+                # print(f"Cloud song ID: {cloud_song_id}")
+                # print(f"owner_id {owner_id}")
+                res = self.library.db.update_after_upload(owner_id, cloud_song_id, client_uid, id)
+                if res['status']:
+                    QMessageBox.information(self, "Success", f"{response.json()['message']}")
+                    return
+                else:
+                    print(res['message'])
             else:
                 QMessageBox.warning(self, "Error", f"Upload failed: {response}")
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Upload failed: {str(e)}")
-
-        
-
 
     def on_delete_song(self, song_id: int) -> None:
         """Delete a song and refresh the list."""
