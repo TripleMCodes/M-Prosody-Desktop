@@ -577,34 +577,38 @@ class MProsody(QWidget):
         # self.api.get_headers()
         
         try:
-            headers = self.api.get_headers()
-            print(headers)
+            # headers = self.api.get_headers()
+            # print(headers)
             # response = requests.post(" http://localhost:8000/api/lyric-tools/upload-song", headers={**headers, "Content-Type": "application/json"}, json=data, timeout=10)
 
-            headers = self.api.get_headers()
+            # headers = self.api.get_headers()
 
-            token = headers["Authorization"].split(" ")[1]
+            # token = headers["Authorization"].split(" ")[1]
 
-            response = requests.post(
-                "http://localhost:8000/api/lyric-tools/upload-song",
-                cookies={"access_token": token},
-                json=data,
-                timeout=10
-            )
+            # response = requests.post(
+            #     "http://localhost:8000/api/lyric-tools/upload-song",
+            #     cookies={"access_token": token},
+            #     json=data,
+            #     timeout=10
+            # )
+
+            response = self.api.upload_song(data)
 
             # response = self.api.call_endpoint("/api/lyric-tools/upload-song", data=data, access_token_required=True, login=True)
-            print(response.json())
+            # print(response.json())
             if response.ok:
                 print(response)
                 result = response.json()['song']
                 cloud_song_id = result.get("song_id")
+                owner_id = result.get("user_id")
                 # Update local db
                 print(f"Cloud song ID: {cloud_song_id}")
                 self.library.db.conn_cursor.execute("""UPDATE lyrics_table
             SET cloud_status = 'uploaded',
+                cloud_owner_user_id = ?,
                 cloud_song_id = ?,
                 client_uid = COALESCE(client_uid, ?)
-            WHERE id = ?;""", (cloud_song_id, song_id, client_uid,))
+            WHERE id = ?;""", (owner_id, cloud_song_id, song_id, client_uid,))
                 self.library.db._commit_data()
                 QMessageBox.information(self, "Success", "Song uploaded successfully.")
             else:

@@ -82,6 +82,9 @@ class LyricalLabAPI:
 
     def __init__(self):
         self.token = TokenManager()
+        self.urls = {
+            "upload_song": "/api/lyric-tools/upload-song"
+        }
 
     def get_headers(self):
         if self.token.ensure_access():
@@ -107,7 +110,7 @@ class LyricalLabAPI:
             url = f"{API_BASE}{endpoint}"
 
             if login:
-                print("logging...")
+                # print("logging...")
                 # Send FORM fields
                 resp = requests.post(
                     url,
@@ -115,7 +118,7 @@ class LyricalLabAPI:
                     headers={**headers, "Content-Type": "application/x-www-form-urlencoded"},
                     timeout=5
                 )
-                print(resp.json())
+                # print(resp.json())
             else:
                 # print("signing up...")
                 resp = requests.post(
@@ -125,7 +128,7 @@ class LyricalLabAPI:
                     timeout=5
                 )
 
-                print(resp.json())
+                # print(resp.json())
             # if not resp.ok:
                 # print("Status:", resp.status_code)
                 # print("Response:", resp.text)
@@ -144,6 +147,20 @@ class LyricalLabAPI:
         except requests.RequestException as e:
             logging.debug(f"API unavailable, offline mode active: {e}")
             return None
+        
+    def upload_song(self, data):
+        headers = self.get_headers()
+        token = headers["Authorization"].split(" ")[1]
+
+        url = f"{API_BASE}{self.urls['upload_song']}"
+        response = requests.post(
+               url,
+                cookies={"access_token": token},
+                json=data,
+                timeout=10
+            )
+
+        return response
 
 #test 
 
