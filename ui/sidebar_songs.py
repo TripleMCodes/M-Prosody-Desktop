@@ -7,7 +7,7 @@ from typing import Callable, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
+    QAbstractItemView, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMessageBox,
     QPushButton, QVBoxLayout, QWidget, QMenu
 )
 from PySide6.QtGui import QAction, QColor
@@ -22,12 +22,14 @@ class SongsSidebar(QWidget):
         on_delete: Callable[[int], None],
         on_view_versions: Callable[[int], None],
         on_upload_song: Callable[[int], None],
+        on_download: Callable[[], None],
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.on_delete = on_delete
         self.on_view_versions = on_view_versions
         self.on_upload_song = on_upload_song
+        self.on_download = on_download
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -74,6 +76,11 @@ class SongsSidebar(QWidget):
         if state == "uploaded":
             item.setBackground(QColor("#a855f7"))  # Neon primary purple
             self.list.addItem(item)
+        
+        elif state == "dirty":
+            item.setBackground(QColor("#432064")) 
+            self.list.addItem(item)
+
             
         elif source == 'web':
             item.setBackground(QColor("#7c3aed"))  # Deep purple
@@ -134,18 +141,74 @@ class SongsSidebar(QWidget):
     def _download_song(self, item: QListWidgetItem) -> None:
         """Download cloud song"""
 
-        row =item.data(Qt.UserRole)
+        row = item.data(Qt.UserRole)
 
         try:
-            source = row[8]
+            source = row[13]
+            # cloud_status = 
+            print(f"source value {source}")
+
+            if source == "uploaded":
+                print("This song was uploaded and it exist locally, are sure you want to download it?")
+           
+
+                QMessageBox.warning(self, "Error", "This song was uploaded and it exist locally. You can't download it")
+                return
+
+            elif source == "local_only":
+                print("Can't download song, it only exists locally.")
+                QMessageBox.warning(self, "Error", "Can't download song, it only exists locally.")
+                return
+            
+
+        except IndexError as e:
+            #This is from cloud songs
+            #check main_window.py, method -> refresh_song_list
+            source = row[7]
+            print(e)
+            # print(f'source value {source}')
+
+            data = {
+                "cloud_song_id": row[0],
+                "title": row[1],
+                "artist": row[2],
+                "album": row[3],
+                "genre": row[4],
+                "mood": row[5],
+                "lyrics": row[6],
+                "source": row[7],
+                "cloud_owner": row[8]
+            }
+
             if source == "web":
-                print("Can download song")
+                # print(f"song data: {data}")
+                print("Are sure you want to download this song?")
+                results = QMessageBox.question(
+            self,
+            "Download Song",
+            "Are sure you want to download this song?",
+            QMessageBox.Yes | QMessageBox.No
+            )
+        
             elif source == "desktop":
-                print("Song was uploaded, want to redownload")
+                # print(f"song data: {data}")
+                print("Song was uploaded, are sure you want to download it?")
+                results = QMessageBox.question(
+            self,
+            "Download Song",
+            "Song was uploaded, are sure you want to download it?",
+            QMessageBox.Yes | QMessageBox.No)
+            
+            if results == QMessageBox.Yes:
+                self.on_download(data)
             else:
-                print('Cannot download song')
+                return
+
         except Exception as e:
-            print('Cannot download song')
+            print(e)
+            return
+
+
 
 
     def _upload_song(self,  item: QListWidgetItem):

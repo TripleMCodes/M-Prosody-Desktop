@@ -193,7 +193,8 @@ class MProsody(QWidget):
             on_item_clicked=self.on_song_clicked,
             on_delete=self.on_delete_song,
             on_view_versions=self.view_song_versions,
-            on_upload_song=self.upload_song
+            on_upload_song=self.upload_song,
+            on_download=self.download_song_from_cloud
         )
 
         # stacked (tools/songs)
@@ -538,11 +539,14 @@ class MProsody(QWidget):
                 label += f"  ·  {mood}"
             if cloud_status == "uploaded":
                 label += f"  ·  {cloud_status}"
+            elif cloud_status == "dirty": #downloaded
+                label += f"  ·  downloaded"
 
             item = QListWidgetItem(label)
             item.setData(Qt.UserRole, row)
             self.songs.add_item(item, state=cloud_status)
 
+        #cloud songs
         if not self.online_gate.require_online("Load cloud songs"):
             return
          
@@ -658,6 +662,20 @@ class MProsody(QWidget):
                     self.current_song_id = None
             else:
                 QMessageBox.warning(self, "Error", result.get("message", "Failed to delete song"))
+
+    def download_song_from_cloud(self, song_data):
+        """This downloads a song from the cloud."""
+        
+        msg = self.library.db.save_downloaded_song(song_data)    
+        print(f"The state is {msg}")
+        if msg['state']:
+            QMessageBox.information(self, "Download complete", msg['message'])
+            self.refresh_song_list(self.songs.query())
+            return
+        else:
+            QMessageBox.warning(self, "Download failed", msg['message'])
+            return
+        
 
     def view_song_versions(self, song_id: int) -> None:
         """Open a window showing versions of the song."""

@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from pathlib import Path
 import hashlib
@@ -106,8 +107,7 @@ class Lyrics():
             return {"message": "Error - Please try again", "state": False}
 
         lyrics_hash = self._hash_lyrics(lyrics)
-
-        import uuid
+        
         client_uid = str(uuid.uuid4())
 
         query = f"""
@@ -142,7 +142,82 @@ class Lyrics():
         except sqlite3.DatabaseError as e:
             logging.debug(e)
             return {"message": "Error - Please try again", "state": False}
-    
+
+
+    def save_downloaded_song(self, data: dict) -> dict:
+        try:
+            title = data.get("title")
+            artist = data.get("artist")
+            lyrics = data.get("lyrics")
+
+            if not title or not artist or not lyrics:
+                return {"message": "Missing required fields", "state": False}
+                print("Missing required fields")
+
+            album = data.get("album", "")
+            genre = data.get("genre", "")
+            mood = data.get("mood", "")
+
+            cloud_song_id = data.get("cloud_song_id")
+            cloud_owner_user_id = data.get("cloud_owner")
+
+            # Ensure uniqueness
+            if not self._is_unique(title):
+                title = self._resolve_duplicate_title(title)
+
+            query = f"""
+                SELECT 1 FROM {self.lyrics_table}
+                WHERE cloud_owner_user_id = ? AND cloud_song_id = ?
+            """
+            self.conn_cursor.execute(query, (cloud_owner_user_id, cloud_song_id))
+
+            if self.conn_cursor.fetchone():
+                return {"message": "Song already exists locally", "state": False}
+
+            lyrics_hash = self._hash_lyrics(lyrics)
+            client_uid = str(uuid.uuid4())
+
+            query = f"""
+                INSERT INTO {self.lyrics_table}
+                (
+                    title, artist, album, genre, mood, lyrics,
+                    version, lyrics_hash, hash_algo,
+                    local_profile_id, cloud_owner_user_id,
+                    cloud_song_id, cloud_status, client_uid 
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """
+
+            self.conn_cursor.execute(
+                query,
+                (
+                    title,
+                    artist,
+                    album,
+                    genre,
+                    mood,
+                    lyrics,
+                    1,
+                    lyrics_hash,
+                    "sha256",
+                    self.local_id,
+                    cloud_owner_user_id,
+                    cloud_song_id,
+                    "dirty",
+                    client_uid,
+                ),
+            )
+
+            self._commit_data()
+
+            return {"message": "Song downloaded successfully", "state": True}
+
+        except Exception as e:
+            print(e)
+            logging.exception("Error saving downloaded song")
+            return {"message": "Error - Please try again", "state": False}
+
+
 #===================================update method(s)===============================================
 #==================================================================================================
 
@@ -414,6 +489,47 @@ class Lyrics():
         album = data.get("album", "")
 
         return title, artist, lyrics, mood, genre, album
+
+    
+
+    def _resolve_duplicate_title(self, title: str) -> str:
+        """
+        Ensures a unique title by appending (copy), (copy 2), (copy 3), etc.
+        """
+
+        # Get all titles that start with this base title
+        query = f"""
+            SELECT title FROM {self.lyrics_table}
+            WHERE title LIKE ?;
+        """
+
+        self.conn_cursor.execute(query, (f"{title}%",))
+        existing_titles = [row[0] for row in self.conn_cursor.fetchall()]
+
+        # If no conflict, return original
+        if title not in existing_titles:
+            return title
+
+        # Pattern to match: Song (copy), Song (copy 2), etc.
+        pattern = re.compile(rf"^{re.escape(title)} \(copy(?: (\d+))?\)$")
+
+        max_copy_number = 1  # Start at 1 for "(copy)"
+
+        for existing in existing_titles:
+            match = pattern.match(existing)
+            if match:
+                number = match.group(1)
+                if number:
+                    max_copy_number = max(max_copy_number, int(number))
+                else:
+                    max_copy_number = max(max_copy_number, 1)
+
+        # First duplicate → "(copy)"
+        if max_copy_number == 1:
+            return f"{title} (copy)"
+
+        # Next duplicates → "(copy N)"
+        return f"{title} (copy {max_copy_number + 1})"
 
         
         
