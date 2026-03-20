@@ -22,7 +22,7 @@ class Song:
     genre: str = ""
     mood: str = ""
     lyrics: str = ""
-
+    cloud_status: str = ""
 
 class LyricsLibrary:
     def __init__(self):

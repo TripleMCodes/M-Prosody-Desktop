@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
     QPushButton, QVBoxLayout, QWidget, QMenu
 )
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QColor
 
 
 class SongsSidebar(QWidget):
@@ -69,8 +69,25 @@ class SongsSidebar(QWidget):
     def clear(self) -> None:
         self.list.clear()
 
-    def add_item(self, item: QListWidgetItem) -> None:
-        self.list.addItem(item)
+    def add_item(self, item: QListWidgetItem, state=None, source=None) -> None:
+    
+        if state == "uploaded":
+            item.setBackground(QColor("#a855f7"))  # Neon primary purple
+            self.list.addItem(item)
+            
+        elif source == 'web':
+            item.setBackground(QColor("#7c3aed"))  # Deep purple
+            self.list.addItem(item)
+
+        elif source == 'desktop':
+            item.setBackground(QColor("#c084fc"))  # Light purple
+            self.list.addItem(item)
+
+        else:
+            self.list.addItem(item)
+
+
+
 
     def query(self) -> str:
         return self.search.text()
@@ -93,6 +110,10 @@ class SongsSidebar(QWidget):
         upload_song_action = QAction("Upload", self)
         upload_song_action.triggered.connect(lambda: self._upload_song(item))
         menu.addAction(upload_song_action)
+
+        download_song_action = QAction("Download", self)
+        download_song_action.triggered.connect(lambda: self._download_song(item))
+        menu.addAction(download_song_action)
         
         menu.exec(self.list.mapToGlobal(position))
 
@@ -110,8 +131,26 @@ class SongsSidebar(QWidget):
             song_id = int(row[0])
             self.on_view_versions(song_id)
 
+    def _download_song(self, item: QListWidgetItem) -> None:
+        """Download cloud song"""
+
+        row =item.data(Qt.UserRole)
+
+        try:
+            source = row[8]
+            if source == "web":
+                print("Can download song")
+            elif source == "desktop":
+                print("Song was uploaded, want to redownload")
+            else:
+                print('Cannot download song')
+        except Exception as e:
+            print('Cannot download song')
+
+
     def _upload_song(self,  item: QListWidgetItem):
         row = item.data(Qt.UserRole)
+
         if row and len(row) > 0:
             song_id = int(row[0])
             # print(f"The song id: {song_id}")

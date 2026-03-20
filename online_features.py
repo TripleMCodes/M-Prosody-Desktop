@@ -83,7 +83,8 @@ class LyricalLabAPI:
     def __init__(self):
         self.token = TokenManager()
         self.urls = {
-            "upload_song": "/api/lyric-tools/upload-song"
+            "upload_song": "/api/lyric-tools/upload-song",
+            "load_song": "/api/lyric-tools/get-uploaded-songs"
         }
 
     def get_headers(self):
@@ -161,6 +162,23 @@ class LyricalLabAPI:
             )
 
         return response
+    
+    def load_songs(self):
+        
+        headers = self.get_headers()
+        token = headers["Authorization"].split(" ")[1]
+
+        url = f"{API_BASE}{self.urls['load_song']}"
+        response = requests.get(
+               url,
+                cookies={"access_token": token},
+                timeout=10
+            )
+
+        return response
+
+
+
 
 #test 
 

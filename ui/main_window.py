@@ -213,6 +213,7 @@ class MProsody(QWidget):
         self.flip_sidebar_btn.setFixedSize(36, 36)
         self.flip_sidebar_btn.clicked.connect(self.flip_sidebar_face)
 
+        
         top_row = QHBoxLayout()
         top_row.setContentsMargins(0, 0, 0, 0)
         top_row.setSpacing(4)
@@ -346,6 +347,7 @@ class MProsody(QWidget):
 
     # Preferences / themes / font
     def init_wrapper(self):
+
         prefs = self.prefs.load()
         self.mode = prefs.theme
         self.font_size = prefs.font_size
@@ -364,6 +366,7 @@ class MProsody(QWidget):
 
         self.openning_app = False
         self.timer_active = True
+
 
     def apply_theme(self):
         # cycle theme
@@ -508,7 +511,10 @@ class MProsody(QWidget):
 
     # Songs sidebar + DB
     def refresh_song_list(self, query: str):
+
         self.songs.clear()
+       
+
 
         songs = self.library.list_songs()
         if isinstance(songs, dict):
@@ -520,17 +526,56 @@ class MProsody(QWidget):
             if len(row) < 7:
                 continue
 
-            song_id, title, artist, album, genre, mood, lyrics = row[:7]
+            song_id, title, artist, album, genre, mood, lyrics, version, lyrics_hash, hash_algo, local_id, cloud_owner_id, cloud_song_id, cloud_status = row[:14]
             hay = " ".join([str(title or ""), str(artist or ""), str(album or ""), str(genre or ""), str(mood or "")]).lower()
             if q and q not in hay:
                 continue
 
+            print(f"cloud status: {cloud_status}")
+
             label = f"{title} — {artist}"
             if mood:
                 label += f"  ·  {mood}"
+            if cloud_status == "uploaded":
+                label += f"  ·  {cloud_status}"
+
             item = QListWidgetItem(label)
             item.setData(Qt.UserRole, row)
-            self.songs.add_item(item)
+            self.songs.add_item(item, state=cloud_status)
+
+        if not self.online_gate.require_online("Load cloud songs"):
+            return
+         
+        try:
+            response = self.api.load_songs()
+
+            if response.ok:
+
+                results = response.json()['songs']
+                for row in results:
+
+                    song_id, title, artist, album, genre, mood, lyrics, source, user_id = row['song_id'], row['song_name'], row['song_artist'], row['song_album'], row['song_genre'], row['song_mood'], row['song_lyrics'], row['source'], row['user_id']
+
+                    row = [row['song_id'], row['song_name'], row['song_artist'], row['song_album'], row['song_genre'], row['song_mood'], row['song_lyrics'], row['source'], row['user_id']
+                        ]
+
+                    label = f"{title} — {artist}"
+                    if mood:
+                        label += f"  ·  {mood}"
+                    if source == "web":
+                        label += f"  ·  {source}"
+                    if source == "desktop":
+                        label += f"  · uploaded from  {source}"
+
+                    item = QListWidgetItem(label)
+                    item.setData(Qt.UserRole, row)
+                    self.songs.add_item(item, source=source)
+                print(f'row: {row}')
+
+        except Exception as e:
+            print(e)
+
+                
 
     def on_song_clicked(self, item):
         row = item.data(Qt.UserRole)
@@ -542,7 +587,7 @@ class MProsody(QWidget):
         self.editor.load_lyrics(lyrics or "")
 
     def upload_song(self, song_id:int):
-        
+
         if not self.online_gate.require_online("uploading songs"):
             return
 
