@@ -18,9 +18,14 @@ def main():
     def open_studio():
         from ui.main_window import MProsody
 
+        latest_songs = get_lastest_songs()
+        
+
         window = MProsody() 
         window.theme_changed_signal.connect(w.apply_theme)
         window.new_song_saved.connect(w.update_stats)
+
+        window.new_song_saved.connect(update_dashboard_recent_songs)
         window.recorded_writing_time.connect(w.save_writing_time)
         window.show()
 
@@ -53,6 +58,10 @@ def main():
         
         return songs_obj_list
     
+    def update_dashboard_recent_songs():
+        latest_songs = get_lastest_songs()
+        w.set_recent_songs(latest_songs)
+
     def get_stats():
         stats = Stats()
 

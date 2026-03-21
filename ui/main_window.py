@@ -217,15 +217,15 @@ class MProsody(QWidget):
         
         top_row = QHBoxLayout()
         top_row.setContentsMargins(0, 0, 0, 0)
-        top_row.setSpacing(4)
         top_row.addWidget(self.toggle_sidebar_btn)
+        top_row.setSpacing(0)
+        top_row.addStretch(0)
         top_row.addWidget(self.flip_sidebar_btn)
-        top_row.addStretch(1)
 
         self.sidebar_shell = QWidget()
         shell_layout = QVBoxLayout(self.sidebar_shell)
         shell_layout.setContentsMargins(0, 0, 0, 0)
-        shell_layout.setSpacing(6)
+        shell_layout.setSpacing(4)
         shell_layout.addLayout(top_row)
         shell_layout.addWidget(self.sidebar_stack, stretch=1)
         self.sidebar_shell.setMinimumWidth(320)
@@ -258,7 +258,7 @@ class MProsody(QWidget):
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.addWidget(self.sidebar_container)
         self.main_splitter.addWidget(self.editor)
-        self.main_splitter.setSizes([340, 900])
+        self.main_splitter.setSizes([290, 950])
         self.main_layout.addWidget(self.main_splitter)
 
     def toggle_timer(self):

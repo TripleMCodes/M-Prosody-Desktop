@@ -3,6 +3,7 @@ Songs sidebar: search + list, click loads into editor.
 """
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Callable, Optional
 
 from PySide6.QtCore import Qt
@@ -10,7 +11,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem, QMessageBox,
     QPushButton, QVBoxLayout, QWidget, QMenu
 )
-from PySide6.QtGui import QAction, QColor
+from PySide6.QtGui import QAction, QColor, QIcon, QPixmap
 
 
 class SongsSidebar(QWidget):
@@ -31,30 +32,51 @@ class SongsSidebar(QWidget):
         self.on_upload_song = on_upload_song
         self.on_download = on_download
 
+        refresh_icon = Path(__file__).parent / "Icons/icons8-refresh-64.png"
+        pen_icon = Path(__file__).parent / "Icons/icons8-writing-64.png"
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(4)
+        layout.setSpacing(1)
 
         nav = QHBoxLayout()
         nav.setContentsMargins(0, 0, 0, 0)
         nav.setSpacing(4)
 
-        self.refresh_btn = QPushButton("🔃")
+        icon_1 = QIcon(str(refresh_icon))
+        self.refresh_btn = QPushButton("")
+        self.refresh_btn.setIcon(icon_1)
         self.refresh_btn.setToolTip("Refresh songs list")
         self.refresh_btn.clicked.connect(lambda: on_refresh(self.search.text()))
 
-        self.flip_btn = QPushButton("🎛 / 🎵")
-        self.flip_btn.setToolTip("Flip sidebar: Tools ↔ Songs")
-        self.flip_btn.clicked.connect(on_flip)
+        # self.flip_btn = QPushButton("🎛 / 🎵")
+        # self.flip_btn.setToolTip("Flip sidebar: Tools ↔ Songs")
+        # self.flip_btn.clicked.connect(on_flip)
 
         nav.addWidget(self.refresh_btn)
-        nav.addWidget(self.flip_btn)
+        # nav.addWidget(self.flip_btn)
         nav.addStretch(1)
         layout.addLayout(nav)
 
-        header = QLabel("🎵 Songs Library")
+        header = QLabel()
+        list_layout = QHBoxLayout()
+
+        icon_label = QLabel()
+        pixmap = QPixmap(pen_icon)
+        pixmap = pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        icon_label.setPixmap(pixmap)
+
+        text_label = QLabel("Songs Library")
+
+        list_layout.addStretch()
+        list_layout.addWidget(icon_label)
+        list_layout.addWidget(text_label)
+        list_layout.addStretch()
+        list_layout.setAlignment(Qt.AlignCenter)
+        
         header.setAlignment(Qt.AlignHCenter)
-        layout.addWidget(header)
+        layout.addLayout(list_layout)
+        layout.setAlignment(Qt.AlignCenter)
 
         self.search = QLineEdit()
         self.search.setPlaceholderText("Search songs (title / artist / album / mood)…")

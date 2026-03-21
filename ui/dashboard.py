@@ -243,6 +243,7 @@ class LLDashboard(QWidget):
 
         self.recent_songs_list = QListWidget()
         self.recent_songs_list.setMinimumHeight(220)
+        self.recent_songs_list
         ws.addWidget(self.recent_songs_list)
 
         lay.addWidget(ws_card)
@@ -310,9 +311,11 @@ class LLDashboard(QWidget):
         if res.get("status"):
             writing_time, sessions, songs_num, total_songs_num = self.on_get_stats()
 
-            m = writing_time // 60
+            h = writing_time // 3600
+            m = (writing_time % 3600) // 60
             s = writing_time % 60
-            writing_time = f"{m:02d}:{s:02d} min"
+
+            writing_time = f"{h:02d}:{m:02d}:{s:02d}"
 
             self.set_stats(writing_time=writing_time, writing_sessions=sessions, new_songs=songs_num, num_songs=total_songs_num)
             self.chart.refresh()
