@@ -182,6 +182,7 @@ class MProsody(QWidget):
             on_save=self.save_file,
             on_check_flow=lambda: self.check_flow_of_selection(),
             on_about=self.about_app,
+            on_new_song=self.start_new_song
         )
         # hook mode radio buttons
         self.tools.lyric_gen_mode.toggled.connect(self.update_search_mode)
@@ -745,6 +746,23 @@ class MProsody(QWidget):
         else:
             QMessageBox.critical(self, "Error", msg.get("message", "Something went wrong."))
 
+    def start_new_song(self):
+
+        reply = QMessageBox.question(
+            self,
+            "Start new Song",
+            "Are you sure you want to clear the editor?",
+            QMessageBox.Yes | QMessageBox.No,)
+
+        if reply:
+            self.editor.writing_editor.clear()
+            self.editor.song_title_input.clear()
+            self.editor.song_artist_input.clear()
+            self.editor.song_album_input.clear()
+            self.editor.song_genre_input.clear()
+            self.editor.song_mood_input.clear()
+            self.current_song_id = None
+
     # Misc actions
     def open_file(self):
         file_name, _ = QFileDialog.getOpenFileName(self, "open file", "", "Text Files (*.txt);;(*.html);;(*.csv);;(*.py);;(*.md)")
@@ -752,8 +770,7 @@ class MProsody(QWidget):
             return
         with open(file_name, "r", encoding="utf-8") as f:
             text = f.read()
-        for editor in self.editor.editors:
-            editor.setText(text)
+            self.editor.writing_editor.setText(text)
 
     def launch_m_recorder(self):
         self.m_recorder = VoiceRecorder()

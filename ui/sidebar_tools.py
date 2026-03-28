@@ -30,6 +30,7 @@ class ToolsSidebar(QWidget):
         on_save: Callable[[], None],
         on_check_flow: Callable[[], None],
         on_about: Callable[[], None],
+        on_new_song: Callable[[], None],
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
@@ -183,8 +184,11 @@ class ToolsSidebar(QWidget):
         self.about_btn.clicked.connect(on_about)
 
 
-        self.new_song_btn = QPushButton("New song")
-
+        self.new_song_btn = QPushButton("")
+        self.new_song_btn.setToolTip("clear editor")
+        self.new_song_btn.clicked.connect(on_new_song)
+        self.new_song_btn.setIcon(QIcon(str(icons_dir / "icons8-add-file-64.png")))
+        self.new_song_btn.setIconSize(QSize(30, 30))
 
         container3_layout.addWidget(self.about_btn)
         container3_layout.addWidget(self.new_song_btn)
