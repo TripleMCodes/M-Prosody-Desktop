@@ -16,12 +16,14 @@ class SidebarRail(QFrame):
         icon_save,
         icon_flow,
         icon_about,
+        icon_new_song,
         menu_icon,
         on_expand: Callable[[], None],
         on_theme: Callable[[], None],
         on_file: Callable[[], None],
         on_save: Callable[[], None],
         on_flow: Callable[[], None],
+        on_new_song: Callable[[], None],
         on_about: Callable[[], None],
         parent: Optional[QWidget] = None,
     ):
@@ -29,7 +31,7 @@ class SidebarRail(QFrame):
         self.setObjectName("sidebarRail")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
+        # layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(10)
         layout.setAlignment(Qt.AlignTop)
 
@@ -38,17 +40,18 @@ class SidebarRail(QFrame):
         self.toggle_btn.setFixedSize(40, 40)
         self.toggle_btn.setToolTip("Expand sidebar")
         self.toggle_btn.clicked.connect(on_expand)
+
         layout.addWidget(self.toggle_btn, alignment=Qt.AlignHCenter)
 
         layout.addSpacing(6)
 
-        def make_btn(icon, tip, cb):
-            b = QToolButton()
-            b.setIcon(icon)
-            b.setIconSize(QSize(26, 26))
-            b.setToolTip(tip)
-            b.clicked.connect(cb)
-            return b
+        # def make_btn(icon, tip, cb):
+        #     b = QToolButton()
+        #     b.setIcon(icon)
+        #     # b.setIconSize(QSize(26, 26))
+        #     b.setToolTip(tip)
+        #     b.clicked.connect(cb)
+        #     return b
 
 
 
@@ -57,11 +60,41 @@ class SidebarRail(QFrame):
         self.theme_btn.setIcon(icon_theme)
         self.theme_btn.setToolTip("Theme")
         self.theme_btn.clicked.connect(on_theme)
+
+
+        self.new_song_btn = QPushButton()
+        self.new_song_btn.setIcon(icon_new_song)
+        self.new_song_btn.setToolTip("clear editor")
+        self.new_song_btn.clicked.connect(on_new_song)
+
+        self.open_file = QPushButton()
+        self.open_file.setToolTip("Open file")
+        self.open_file.clicked.connect(on_file)
+        self.open_file.setIcon(icon_file)
+
+        self.save = QPushButton()
+        self.save.setToolTip("Save")
+        self.save.clicked.connect(on_save)
+        self.save.setIcon(icon_save)
+
+
+        self.check_flow = QPushButton()
+        self.check_flow.setToolTip("Check flow")
+        self.check_flow.clicked.connect(on_flow)
+        self.check_flow.setIcon(icon_flow)
+
+        self.about = QPushButton()
+        self.about.setToolTip("About")
+        self.about.clicked.connect(on_about)
+        self.about.setIcon(icon_about)
+
+
         layout.addWidget(self.theme_btn, alignment=Qt.AlignHCenter)
-        layout.addWidget(make_btn(icon_file, "Open file", on_file), alignment=Qt.AlignHCenter)
-        layout.addWidget(make_btn(icon_save, "Save", on_save), alignment=Qt.AlignHCenter)
-        layout.addWidget(make_btn(icon_flow, "Check flow", on_flow), alignment=Qt.AlignHCenter)
-        layout.addWidget(make_btn(icon_about, "About", on_about), alignment=Qt.AlignHCenter)
+        layout.addWidget(self.new_song_btn, alignment=Qt.AlignHCenter)
+        layout.addWidget(self.open_file, alignment=Qt.AlignHCenter)
+        layout.addWidget(self.save, alignment=Qt.AlignHCenter)
+        layout.addWidget(self.check_flow, alignment=Qt.AlignHCenter)
+        layout.addWidget(self.about, alignment=Qt.AlignHCenter)
         layout.addStretch(1)
 
         self.setFixedWidth(56)

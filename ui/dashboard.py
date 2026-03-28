@@ -252,7 +252,7 @@ class LLDashboard(QWidget):
         self.draft_meta.setWordWrap(True)
         ws.addWidget(self.draft_meta)
 
-        self.open_studio_btn = QPushButton("<h2>Open Studio</h2>")
+        self.open_studio_btn = QPushButton("Open Studio")
         self.open_studio_btn.clicked.connect(self.open_studio)
         ws.addWidget(self.open_studio_btn)
 

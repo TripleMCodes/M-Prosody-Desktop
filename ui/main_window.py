@@ -252,12 +252,14 @@ class MProsody(QWidget):
             icon_save=self.tools.save_btn.icon(),
             icon_flow=self.tools.flow_btn.icon(),
             icon_about=self.tools.about_btn.icon(),
+            icon_new_song=self.tools.new_song_btn.icon(),
             menu_icon=self.menu_icon,
             on_expand=self.toggle_sidebar,
             on_theme=self.apply_theme,
             on_file=self.open_file,
             on_save=self.save_file,
             on_flow=lambda: self.check_flow_of_selection(),
+            on_new_song=self.start_new_song,
             on_about=self.about_app,
         )
         self.sidebar_rail.setVisible(False)
