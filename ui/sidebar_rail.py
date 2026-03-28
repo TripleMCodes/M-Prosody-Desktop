@@ -16,6 +16,7 @@ class SidebarRail(QFrame):
         icon_save,
         icon_flow,
         icon_about,
+        menu_icon,
         on_expand: Callable[[], None],
         on_theme: Callable[[], None],
         on_file: Callable[[], None],
@@ -33,7 +34,7 @@ class SidebarRail(QFrame):
         layout.setAlignment(Qt.AlignTop)
 
         self.toggle_btn = QToolButton()
-        self.toggle_btn.setText("☰")
+        self.toggle_btn.setIcon(menu_icon)
         self.toggle_btn.setFixedSize(40, 40)
         self.toggle_btn.setToolTip("Expand sidebar")
         self.toggle_btn.clicked.connect(on_expand)

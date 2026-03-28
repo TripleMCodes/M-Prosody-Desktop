@@ -39,7 +39,7 @@ class ToolsSidebar(QWidget):
         self.layout.setContentsMargins(8,8,8,8)
         self.layout.setSpacing(5)
 
-        self.header_label = QLabel("Lyrics and FOS generation")
+        self.header_label = QLabel("<h2>Lyrics and FOS generation</h2>")
         self.layout.addWidget(self.header_label, alignment=Qt.AlignHCenter)
 
         self.prompt_area = QLineEdit()
@@ -47,7 +47,12 @@ class ToolsSidebar(QWidget):
         self.prompt_area.setFixedSize(300, 30)
         self.layout.addWidget(self.prompt_area)
 
-        self.generate_btn = QPushButton("Generate")
+        lyrics_icon_path = Path(__file__).parent / "Icons/icons8-lyrics-50.png"
+
+        lyrics_icon = QIcon(str(lyrics_icon_path))
+        self.generate_btn = QPushButton()
+        self.generate_btn.setToolTip("generate lyrics")
+        self.generate_btn.setIcon(lyrics_icon)
         self.generate_btn.clicked.connect(on_generate)
         self.layout.addWidget(self.generate_btn, alignment=Qt.AlignHCenter)
 
@@ -60,7 +65,7 @@ class ToolsSidebar(QWidget):
 
         lyric_col = QVBoxLayout()
         lyric_col.setSpacing(5)
-        lyric_col.addWidget(QLabel("Genres"))
+        lyric_col.addWidget(QLabel("<h4>Genres</h4>"))
 
         self.genre_list: List[str] = ["Pop","Alt Pop","Hip Hop","Rap","Trap","Rock","Rnb","Punk","Emo","Indie","Folk"]
         self.genres = QComboBox()
@@ -70,7 +75,7 @@ class ToolsSidebar(QWidget):
         gen_layout.addLayout(lyric_col)
 
         fos_col = QVBoxLayout()
-        fos_col.addWidget(QLabel("Figures of Speech"))
+        fos_col.addWidget(QLabel("<h4>Figures of Speech</h4>"))
         self.figure_of_speech_list: List[str] = [
             "simile","metaphor","analogy","Analogy","Assonance","Consonance","Pun",
             "Alliteration","Onomatopoeia","Oxymoron","Irony"
@@ -82,18 +87,20 @@ class ToolsSidebar(QWidget):
         gen_layout.addLayout(fos_col)
 
         # lexicon
-        self.header2_label = QLabel("Rhymes and Lexicon")
+        self.header2_label = QLabel("<h4>Rhymes and Lexicon</h4>")
         self.layout.addWidget(self.header2_label, alignment=Qt.AlignHCenter)
 
         self.prompt2_area = QLineEdit()
         self.prompt2_area.setPlaceholderText("Enter word search here")
         self.prompt2_area.setFixedSize(300, 30)
         self.layout.addWidget(self.prompt2_area)
-
-        self.search_btn = QPushButton("Search")
-        self.search_btn.setFixedSize(150, 40)
+        
+        search_icon_path = Path(__file__).parent / "Icons/icons8-find-64.png"
+        search_icon = QIcon(str(search_icon_path))
+        self.search_btn = QPushButton()
+        self.search_btn.setIcon(search_icon)
+        # self.search_btn.setIconSize(QSize(32, 32))
         self.search_btn.clicked.connect(on_search_lexicon)
-        self.layout.addWidget(self.search_btn, alignment=Qt.AlignHCenter)
 
         self.options_list: List[str] = [
             "Rhymes","Slant Rhymes","Synonyms","Antonyms","Homophones","Related",
@@ -103,18 +110,23 @@ class ToolsSidebar(QWidget):
         self.rhymes_n_lexicon = QComboBox()
         self.rhymes_n_lexicon.addItems(self.options_list)
         self.layout.addWidget(self.rhymes_n_lexicon, alignment=Qt.AlignHCenter)
+        self.layout.addWidget(self.search_btn, alignment=Qt.AlignHCenter)
 
         # recorder
-        self.m_label = QLabel("Melody & Flow Recorder")
+        self.m_label = QLabel("<h4>Melody & Flow Recorder</h4>")
         self.layout.addWidget(self.m_label, alignment=Qt.AlignHCenter)
 
-        self.launch_btn = QPushButton("Launch M recorder")
+        audio_icon_path = Path(__file__).parent / "Icons/icons8-audio-wave-64.png"
+        audio_icon = QIcon(str(audio_icon_path))
+        self.launch_btn = QPushButton()
+        self.launch_btn.setIconSize(QSize(32, 32))
+        self.launch_btn.setIcon(audio_icon)
         self.launch_btn.clicked.connect(on_launch_recorder)
         self.layout.addWidget(self.launch_btn)
 
         # font size
-        self.font_label = QLabel("Font Size")
-        self.layout.addWidget(self.font_label)
+        self.font_label = QLabel("<h4>Font Size</h4>")
+        self.layout.addWidget(self.font_label, alignment=Qt.AlignHCenter)
 
         self.font_sizes = ["10","12","14","16","18","20","22","24","26"]
         self.font_size_opt = QComboBox()
@@ -130,6 +142,7 @@ class ToolsSidebar(QWidget):
         self.theme_btn = QPushButton("")
         self.theme_btn.setIcon(QIcon(str(icons_dir / "icons8-dark-mode-48.png")))
         self.theme_btn.setIconSize(QSize(30, 30))
+        self.theme_btn.setToolTip("Change theme")
         self.theme_btn.clicked.connect(on_apply_theme)
 
         # file btn
@@ -169,4 +182,9 @@ class ToolsSidebar(QWidget):
         self.about_btn.setToolTip("About")
         self.about_btn.clicked.connect(on_about)
 
+
+        self.new_song_btn = QPushButton("New song")
+
+
         container3_layout.addWidget(self.about_btn)
+        container3_layout.addWidget(self.new_song_btn)

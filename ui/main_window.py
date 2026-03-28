@@ -204,12 +204,26 @@ class MProsody(QWidget):
         self.sidebar_stack.setCurrentIndex(SidebarMode.TOOLS)
 
         # top-left controls for the *expanded* sidebar
-        self.toggle_sidebar_btn = QPushButton("☰")
+        self.rails_icon_path = Path(__file__).parent / "Icons/icons8-railway-64.png"
+        self.menu_icon_path = Path(__file__).parent / "Icons/icons8-menu-48.png"
+
+        self.rails_icon = QIcon(str(self.rails_icon_path))
+        self.menu_icon = QIcon(str(self.menu_icon_path))
+
+        self.toggle_sidebar_btn = QPushButton()
+        self.toggle_sidebar_btn.setIcon(self.rails_icon)
         self.toggle_sidebar_btn.setToolTip("Toggle sidebar")
         self.toggle_sidebar_btn.setFixedSize(36, 36)
         self.toggle_sidebar_btn.clicked.connect(self.toggle_sidebar)
 
-        self.flip_sidebar_btn = QPushButton("🎛 / 🎵")
+        self.song_list_icon_path = Path(__file__).parent / "Icons/icons8-list-64.png"
+        self.tools_icon_path = Path(__file__).parent / "Icons/icons8-dashboard-layout-48.png"
+
+        self.song_list_icon = QIcon(str(self.song_list_icon_path))
+        self.tools_icon = QIcon(str(self.tools_icon_path))
+
+        self.flip_sidebar_btn = QPushButton()
+        self.flip_sidebar_btn.setIcon(self.song_list_icon)
         self.flip_sidebar_btn.setToolTip("Flip sidebar: Tools ↔ Songs")
         self.flip_sidebar_btn.setFixedSize(36, 36)
         self.flip_sidebar_btn.clicked.connect(self.flip_sidebar_face)
@@ -237,6 +251,7 @@ class MProsody(QWidget):
             icon_save=self.tools.save_btn.icon(),
             icon_flow=self.tools.flow_btn.icon(),
             icon_about=self.tools.about_btn.icon(),
+            menu_icon=self.menu_icon,
             on_expand=self.toggle_sidebar,
             on_theme=self.apply_theme,
             on_file=self.open_file,
@@ -302,6 +317,11 @@ class MProsody(QWidget):
     def flip_sidebar_face(self):
         next_mode = SidebarMode.SONGS if self.current_sidebar_face == SidebarMode.TOOLS else SidebarMode.TOOLS
         self.set_sidebar_mode(next_mode)
+        if next_mode == SidebarMode.SONGS:
+            self.flip_sidebar_btn.setIcon(self.tools_icon)
+        else:
+            self.flip_sidebar_btn.setIcon(self.song_list_icon)
+
 
     def toggle_sidebar(self):
         """Collapse/expand sidebar into an icon rail (VS Code-ish)."""
@@ -317,6 +337,7 @@ class MProsody(QWidget):
             self.animate_splitter(sidebar_w, target_sidebar)
             self.sidebar_collapsed = False
             self.toggle_sidebar_btn.setToolTip("Collapse sidebar")
+            self.toggle_sidebar_btn.setIcon(self.rails_icon)
         else:
             if sidebar_w > 80:
                 self.sidebar_expanded_width = sidebar_w
@@ -326,6 +347,7 @@ class MProsody(QWidget):
             self.animate_splitter(sidebar_w, target_sidebar)
             self.sidebar_collapsed = True
             self.toggle_sidebar_btn.setToolTip("Expand sidebar")
+            self.toggle_sidebar_btn.setIcon(self.menu_icon)
 
     def animate_splitter(self, start_sidebar, end_sidebar, duration=200):
         total = self.main_splitter.size().width()

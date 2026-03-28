@@ -74,6 +74,7 @@ def main():
         if ts.get('status'):
             total_songs_num = ts.get('message', 0)[0]
             
+            
         stats = stats.get_res_stats()
         writing_time = stats[1]
         sessions = stats[2] 

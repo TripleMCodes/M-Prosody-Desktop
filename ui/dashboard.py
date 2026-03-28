@@ -84,7 +84,6 @@ class LLDashboard(QWidget):
         outer.setContentsMargins(16, 16, 16, 16)
         outer.setSpacing(12)
 
-        # Scroll area to mimic Svelte .scrollable
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
@@ -113,12 +112,17 @@ class LLDashboard(QWidget):
         lay = self._left_layout()
 
         # Search
-        card, c, _ = glass_card("Search")
+        card, c, _ = glass_card("<h2>Search</h2>")
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Search songs / notes / ideas…")
         c.addWidget(self.search_input)
 
-        self.search_btn = QPushButton("Search")
+
+        search_icon_path = Path(__file__).parent / "Icons/icons8-find-64.png"
+        search_icon = QIcon(str(search_icon_path))
+        self.search_btn = QPushButton()
+        self.search_btn.setIcon(search_icon)
+        self.search_btn.setIconSize(QSize(32, 32))
         self.search_btn.setObjectName("GhostBtn")
         self.search_btn.clicked.connect(self._noop_search)
         c.addWidget(self.search_btn)
@@ -126,7 +130,7 @@ class LLDashboard(QWidget):
         lay.addWidget(card)
 
         # Scratchpad
-        sp_card, sp, _ = glass_card("Scratchpad")
+        sp_card, sp, _ = glass_card("<h2>Scratchpad</h2>")
         row = QHBoxLayout()
         row.setSpacing(10)
 
@@ -143,14 +147,27 @@ class LLDashboard(QWidget):
         btns = QHBoxLayout()
         btns.setSpacing(8)
 
-        self.new_note_btn = QPushButton("New")
+        new_note_icon_path = Path(__file__).parent / "Icons/icons8-add-new-64.png"
+        new_note_icon = QIcon(str(new_note_icon_path))
+        self.new_note_btn = QPushButton()
+        self.new_note_btn.setToolTip("add new note")
+        self.new_note_btn.setIcon(new_note_icon)
         self.new_note_btn.setObjectName("GhostBtn")
         self.new_note_btn.clicked.connect(self.create_note)
 
-        self.save_note_btn = QPushButton("Save")
+
+        save_icon_path =  Path(__file__).parent / "Icons/icons8-save-64.png"
+        save_icon = QIcon(str(save_icon_path))
+        self.save_note_btn = QPushButton()
+        self.save_note_btn.setToolTip("save note")
+        self.save_note_btn.setIcon(save_icon)
         self.save_note_btn.clicked.connect(self.save_note)
 
-        self.del_note_btn = QPushButton("Delete")
+        delete_icon_path = Path(__file__).parent / "Icons/icons8-delete-48.png"
+        delete_icon = QIcon(str(delete_icon_path))
+        self.del_note_btn = QPushButton()
+        self.del_note_btn.setToolTip("delete note")
+        self.del_note_btn.setIcon(delete_icon)
         self.del_note_btn.setObjectName("GhostBtn")
         self.del_note_btn.clicked.connect(self.delete_selected_note)
 
@@ -169,14 +186,16 @@ class LLDashboard(QWidget):
         lay.addWidget(sp_card)
 
         # RimeSearch
-        rs_card, rs, _ = glass_card("Rime Search")
+        rs_card, rs, _ = glass_card("<h2>Rime Search</h2>")
         self.rhyme_input = QLineEdit()
         self.rhyme_input.setPlaceholderText("Enter a word to rhyme…")
 
         rs_row = QHBoxLayout()
         rs_row.setSpacing(10)
 
-        self.rhyme_btn = QPushButton("Find rhymes")
+        self.rhyme_btn = QPushButton()
+        self.rhyme_btn.setIcon(search_icon)
+        self.rhyme_btn.setToolTip("find rhyme")
         self.rhyme_btn.clicked.connect(self.find_rhyme)
 
         self.rhyme_loading = QLabel("")
@@ -200,14 +219,14 @@ class LLDashboard(QWidget):
         lay = self._right_layout()
 
         # Stats
-        st_card, st, _ = glass_card("Stats")
+        st_card, st, _ = glass_card("<h2>Stats</h2>")
         stats_row = QHBoxLayout()
         stats_row.setSpacing(10)
 
-        self.stat_writing_time = self._stat_tile("(recent)Writing time", "0")
-        self.stat_sessions = self._stat_tile("(recent)Sessions", "0")
-        self.stat_new_songs = self._stat_tile("New songs", "0")
-        self.stat_num_songs = self._stat_tile("Total songs", "0")
+        self.stat_writing_time = self._stat_tile("<h4>Writing time (recently)</h4>", "0")
+        self.stat_sessions = self._stat_tile("<h4>Sessions (recently)</h4>", "0")
+        self.stat_new_songs = self._stat_tile("<h4>New songs</h4>", "0")
+        self.stat_num_songs = self._stat_tile("<h4>Total songs</h4>", "0")
 
         stats_row.addWidget(self.stat_writing_time)
         stats_row.addWidget(self.stat_sessions)
@@ -223,7 +242,7 @@ class LLDashboard(QWidget):
         lay.addWidget(self.chart, 1) 
         
         # Workspace
-        ws_card, ws, _ = glass_card("Workspace")
+        ws_card, ws, _ = glass_card("<h2>Workspace</h2>")
 
         self.draft_label = QLabel("Draft")
         self.draft_label.setStyleSheet("font-weight: 600;")
@@ -233,12 +252,12 @@ class LLDashboard(QWidget):
         self.draft_meta.setWordWrap(True)
         ws.addWidget(self.draft_meta)
 
-        self.open_studio_btn = QPushButton("Open Studio")
+        self.open_studio_btn = QPushButton("<h2>Open Studio</h2>")
         self.open_studio_btn.clicked.connect(self.open_studio)
         ws.addWidget(self.open_studio_btn)
 
-        rec_title = QLabel("Recent songs")
-        rec_title.setStyleSheet("font-weight: 600; margin-top: 8px;")
+        rec_title = QLabel("<h2>Recent songs</h2>")
+        # rec_title.setStyleSheet("font-weight: 600; margin-top: 8px;")
         ws.addWidget(rec_title)
 
         self.recent_songs_list = QListWidget()

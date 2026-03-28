@@ -230,9 +230,6 @@ class SongsSidebar(QWidget):
             print(e)
             return
 
-
-
-
     def _upload_song(self,  item: QListWidgetItem):
         row = item.data(Qt.UserRole)
 

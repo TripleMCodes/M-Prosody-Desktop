@@ -1,64 +1,63 @@
-Some random guy:
-Hey, get out of the way, pronouns!
+Chorus: 
+let's get facts straight, don't get it twisted//
+I'm here to make waves, don't care about dripping// 
+Art at this state is the state-of-the-art// 
+I really got something to say, I ain't just twisting the language for vibes// 
+Verse: 
+Here's the real deal, let's keep it real//(1) 
+people pleasing kills technique//(2) 
+identity-making style, my lines flip meaning//(3) 
+my destiny is written by living//(4) 
+RP on the beat with style guide//(5) 
+lines are meaning something not just once//(6) 
+styles the meaning//(7) 
+plus demanding//(8) 
+so something new's attempted//(9) 
+a Few will grab this//(10) 
+people are burdensome, ugh//(11) 
+though humanity is wonderful//(12) 
+it is in the air, don't nobody care//(13) 
+money breeds evil//(14) 
+and power needs weaklings//(15) 
+beauty chastises ugly//(16) 
+ugly condemns beauty//(17) 
+all the while wearing smiles preaching lies//(18) 
+It is what I do, I speak my mind//(19) 
+through every line, now let's move backwards//(20) 
+Reverse: 
+Now let's move backwards through every line//(20) 
+preaching lies wearing smiles all the while//(18) 
+beauty condemns ugly//(17) 
+ugly chastises beauty//(16) 
+weaklings need power and//(15) 
+evil breathes money//(14) 
+don't nobody care, it is in the air//(13) 
+Foolishly wondering humanity, though//(12) 
+Some burdens are people, ugh//(11) 
+this will grab a few//(10) 
+attempting something new, so//(9) 
+demanding plus//(8) 
+the meaning's style//(7) 
+not just once lines are meaning something//(6) 
+guide style with the beat on RP//(5) 
+living by writing is my destiny//(4) 
+meaning flipping lines, my style making identity//(3) 
+technique kills people pleasing//(2) 
+let's keep it real, here's the real deal//(1) 
 
-Xaria: WTF!  w  
+Chorus: 
+I ain't just twisting the language for vibes, I really got something to say// 
+State-of-the-art is the art at this state// 
+Don't care about dripping, I'm here to make waves// 
+Don't get it twisted, let's get facts straight//
 
-I'm a literal liberal lyrical lunatic losing it//
-Lucifers lying and looting, creating illusions of lenience
-while making their legacies lucrative//
-Some labour in languish while others are living it lavishly from leeching the little, it's ludicrous//
-lay-offs of layman in legions lately are laden, they lie, but many believe their language is luminous//
-Leviathans lecture about liberty while legislating lamentation, but living like lords and lavished with libation//
-They're drunk on their egos, we labour lamenting//
 
-properties purchased by priors, their progeny living in poverty//
-On the podium, presidents promising to purge the of peaking prices
-At the pinnacle, they pack their pockets but pass the pennies to peasants//
-Then, privately purchase the parliament, proceed to preach in public  "the people are equal", they are far from pressure, but place their presence as present//
-No pointing the pretence, there's a prevailing pretext//
-And don't call me pronouns, you presumptuous prickhead//
 
-Identity makes style, my lines flip meaning now//
-technique kills people-pleasing//
-People are burdensome//
-Love bombing makes icks//
-lost connection//
-Words fill lies//
-distances in-between//
-Space between worlds//
-beauty condemns ugly//
-ugly chastises beauty//
-Evil breeds money//
-Money making rumors//
-Pockets deep? No, closed doors//
-Pockets deep? Yes, open thighs//
-reincarnation keeps lust//
-life brings death//
-birth follows decay//
 
-Reverse
-Decay follows birth//
-Death brings life//
-Lust keeps reincarnation//
-Thighs open? Yes, deep pockets//
-Doors closed? No, deep pockets//
-Rumors make money//
-Money breeds evil//
-Beauty chastises ugly//
-Ugly condemns beauty//
-Worlds between spaces//
-In-between distances//
-Lies fill words//
-Connection lost//
-Icks making bumming love//
-Some burdens are people//
-Pleasing people kills technique//
-Now meaning flips lines//
-My style makes identity//
 
-Don't forget, Don't forgive
-Fear
-I am here, as Allmight.
-I'm begging for you to take my hand
-I know that my dream will take you home
-Time for time force
+
+The Phonetic Pivot (Homophonic Substitution) Forward: money breeds evil Reverse: evil breathes money This is the exact kind of manipulation that a purely text-based AI cannot do, because it relies on the human vocal tract. By relying on the phonetic "fingerprint" of the vowels and the alveolar consonants (/d/ in breeds vs. /ð/ in breathes), I maintain the auditory illusion. To the ear, the line hasn't changed its DNA, but the semantic meaning has entirely shifted.
+The "Wonderful" Decomposition (Stacking Rules) Forward: though humanity is wonderful Reverse: Foolishly wondering humanity, though This is the craziest flip in the whole track. I took a single adjective ("wonderful") and executed a three-step algorithmic deconstruction:
+Decomposition: Break "wonderful" into "wonder" and "ful".
+Homophonic Substitution (HS): Shift "ful" to "fool".
+Grammatical Class Alteration: Evolve "fool" into the adverb "foolishly", and shift "wonder" into the active participle "wondering". It completely changes the philosophical tone of the line from an optimistic observation to a cynical critique, while strictly obeying the conservation of phonetic mass. b
