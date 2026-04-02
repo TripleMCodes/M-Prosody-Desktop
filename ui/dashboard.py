@@ -1,5 +1,7 @@
+import os
+
 from PySide6.QtCore import Qt, QTimer, Signal, QSize
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QFrame, QLabel, QLineEdit, QPushButton,
     QListWidget, QListWidgetItem, QTextEdit, QScrollArea, QSizePolicy
@@ -31,6 +33,7 @@ class LLDashboard(QWidget):
         super().__init__(parent)
 
         self.prefs = Preferences(CONFIG_FILE)
+        self.setWindowTitle("/ɛm ˈprɑːsədi/")
         self.theme_mgr = ThemeManager()
         self.theme_mgr.load_themes()
         prefs = self.prefs.load()
@@ -50,16 +53,60 @@ class LLDashboard(QWidget):
 
         self._current_note_id: str = ""
 
-        root = QHBoxLayout(self)
+        meta_root = QVBoxLayout(self)
+        meta_root.setContentsMargins(0, 0, 0, 0)
+        meta_root.setSpacing(0)
+
+        header_layout = QVBoxLayout()
+        # header_layout.setContentsMargins(16, 16, 16, 16)
+
+        # header = QLabel("<h1>/ɛm ˈprɑːsədi/</h1>")
+        # # header.setStyleSheet("font-weight: 700; margin-bottom: 8px;")
+        # header_layout.addWidget(header, alignment=Qt.AlignmentFlag.AlignCenter)
+        # meta_root.addLayout(header_layout)
+        logo = QLabel()
+
+        logo_path = os.path.join(
+            "mprosody",
+            "ui",
+            "Icons",
+            "logo_no_bg.png"
+        )
+
+        pixmap = QPixmap(logo_path)
+
+        # Optional: scale logo
+        pixmap = pixmap.scaled(
+            120, 120,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
+
+        logo.setPixmap(pixmap)
+        logo.setAlignment(Qt.AlignCenter)
+
+        header_layout.addWidget(logo, alignment=Qt.AlignCenter)
+
+        # IPA Header
+        header = QLabel("<h1>/ɛm ˈprɑːsədi/</h1>")
+        header.setAlignment(Qt.AlignCenter)
+
+        header_layout.addWidget(header, alignment=Qt.AlignCenter)
+
+        root = QHBoxLayout()
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(14)
+        meta_root.addLayout(header_layout)
+        meta_root.addLayout(root)
+
 
         # Two main panels
         self.left_panel = self._build_panel()
         self.right_panel = self._build_panel()
 
-        root.addWidget(self.left_panel, 1)
-        root.addWidget(self.right_panel, 1)
+        # root.addLayout(header_layout)
+        root.addWidget(self.left_panel)
+        root.addWidget(self.right_panel)
 
         # Toast
         self.toast = NotificationToast(self)
@@ -460,7 +507,7 @@ class LLDashboard(QWidget):
                 return
 
             for  rhyme, score in results:
-                item = f"{rhyme} -> {score:.2f}"
+                item = f" {rhyme} -> {score:.2f} \n"
                 # self.rhyme_list.font(QFont())
                 self.rhyme_list.addItem(QListWidgetItem(item))
                 # return

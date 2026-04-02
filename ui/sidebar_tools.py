@@ -104,7 +104,7 @@ class ToolsSidebar(QWidget):
         self.search_btn.clicked.connect(on_search_lexicon)
 
         self.options_list: List[str] = [
-            "Rhymes","Slant Rhymes","Synonyms","Antonyms","Homophones","Related",
+            "Rhymes","Synonyms","Antonyms","Homophones","Related",
             "Adjectives described by","Nouns described by","Spelling pattern match",
             "hyponyms","Hypernyms","Sound alike"
         ]

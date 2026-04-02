@@ -11,7 +11,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 import requests
-
+from Rhyme_engine.rhyme_engine import find_rhymes_api
 import numpy as np
 import pyphen
 import pronouncing
@@ -472,8 +472,8 @@ class MProsody(QWidget):
         self.tools.prompt_area.clear()
 
     def search_lexicon(self):
-        if not self.online_gate.require_online("Lyric generation"):
-            return
+        # if not self.online_gate.require_online("Lyric generation"):
+        #     return
         
         part = self.tools.rhymes_n_lexicon.currentText()
         word = self.tools.prompt2_area.text().strip()
@@ -482,31 +482,43 @@ class MProsody(QWidget):
 
         # map to lexicon service
         opt = self.tools.options_list
+        # if part == opt[0]:
+        #     res = f"Rhymes with '{word}': {self.lexicon.rhymes(word)}"
         if part == opt[0]:
-            res = f"Rhymes with '{word}': {self.lexicon.rhymes(word)}"
+            res = find_rhymes_api(word)
+            # print(results)
+            # res = ""
+            # for rhyme, score in results:
+            #     res += f"{rhyme} -> {score:.2f}"
+            
         elif part == opt[1]:
-            res = f"Slant rhymes for '{word}': {self.lexicon.slant_rhymes(word)}"
-        elif part == opt[2]:
             res = f"Synonyms for '{word}': {self.lexicon.synonyms(word)}"
-        elif part == opt[3]:
+        elif part == opt[2]:
             res = f"Antonyms for '{word}': {self.lexicon.antonyms(word)}"
-        elif part == opt[4]:
+        elif part == opt[3]:
             res = f"Homophones for '{word}': {self.lexicon.homophones(word)}"
-        elif part == opt[5]:
+        elif part == opt[4]:
             res = f"Related words for '{word}': {self.lexicon.related(word)}"
-        elif part == opt[6]:
+        elif part == opt[5]:
             res = f"Adjectives for '{word}': {self.lexicon.adjectives(word)}"
-        elif part == opt[7]:
+        elif part == opt[6]:
             res = f"Nouns described by '{word}': {self.lexicon.nouns_described_by(word)}"
-        elif part == opt[8]:
+        elif part == opt[7]:
             res = f"Spelled like '{word}': {self.lexicon.spelled_like(word)}"
-        elif part == opt[9]:
+        elif part == opt[8]:
             res = f"More specific than '{word}': {self.lexicon.hyponyms(word)}"
-        elif part == opt[10]:
+        elif part == opt[9]:
             res = f"More general than '{word}': {self.lexicon.hypernyms(word)}"
         else:
             res = f"Sounds like '{word}': {self.lexicon.sounds_like(word)}"
 
+        rime = ""
+        if part == "Rhymes":
+            for rhyme, score in res:
+                rime += f"{rhyme} -> {score:.2f}\n"
+                self.editor.display_editor.setPlainText(rime)
+            return 
+        
         self.editor.display_editor.setPlainText(res)
         self.tools.prompt2_area.clear()
 

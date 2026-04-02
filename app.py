@@ -20,7 +20,6 @@ def main():
 
         latest_songs = get_lastest_songs()
         
-
         window = MProsody() 
         window.theme_changed_signal.connect(w.apply_theme)
         window.new_song_saved.connect(w.update_stats)
