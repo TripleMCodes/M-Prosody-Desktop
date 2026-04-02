@@ -10,6 +10,7 @@ from ui.notifications import NotificationToast
 from services.glass_builder import glass_card
 from services.models import Note, SongPreview
 from services.preferences import ThemeManager, Preferences
+from services.fetch_rhymes import find_rhymes
 from stats_db import Stats
 from autodidex_cache import DictionaryCache
 from themes_db import Themes
@@ -453,13 +454,16 @@ class LLDashboard(QWidget):
                 self.toast.show_toast("Rhyme search not wired.", "info")
                 return
             try:
-                results = self.on_fetch_rhymes(word) or []
+                results = find_rhymes(word)
             except Exception as e:
                 self.toast.show_toast(f"Rhyme search failed: {e}", "error")
                 return
 
-            for r in results:
-                self.rhyme_list.addItem(QListWidgetItem(str(r)))
+            for  rhyme, score in results:
+                item = f"{rhyme} -> {score:.2f}"
+                # self.rhyme_list.font(QFont())
+                self.rhyme_list.addItem(QListWidgetItem(item))
+                # return
 
         # mimic loading state; replace with real async later
         QTimer.singleShot(150, finish)
