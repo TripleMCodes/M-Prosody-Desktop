@@ -57,15 +57,15 @@ class LLDashboard(QWidget):
         meta_root.setContentsMargins(0, 0, 0, 0)
         meta_root.setSpacing(0)
 
-        header_layout = QVBoxLayout()
-        # header_layout.setContentsMargins(16, 16, 16, 16)
+        header_container = QWidget()
+        header_container.setObjectName("headerContainer")
 
-        # header = QLabel("<h1>/ɛm ˈprɑːsədi/</h1>")
-        # # header.setStyleSheet("font-weight: 700; margin-bottom: 8px;")
-        # header_layout.addWidget(header, alignment=Qt.AlignmentFlag.AlignCenter)
-        # meta_root.addLayout(header_layout)
+        header_layout = QVBoxLayout(header_container)
+        header_layout.setContentsMargins(20, 20, 20, 20)
+        header_layout.setSpacing(6)
+
+        # LOGO
         logo = QLabel()
-
         logo_path = os.path.join(
             "mprosody",
             "ui",
@@ -74,10 +74,8 @@ class LLDashboard(QWidget):
         )
 
         pixmap = QPixmap(logo_path)
-
-        # Optional: scale logo
         pixmap = pixmap.scaled(
-            120, 120,
+            150, 100,
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation
         )
@@ -87,16 +85,41 @@ class LLDashboard(QWidget):
 
         header_layout.addWidget(logo, alignment=Qt.AlignCenter)
 
-        # IPA Header
+        # IPA HEADER
         header = QLabel("<h1>/ɛm ˈprɑːsədi/</h1>")
         header.setAlignment(Qt.AlignCenter)
+        header.setObjectName("ipaHeader")
+
+        header_container.setStyleSheet("""
+            #headerContainer {
+                border-radius: 16px;
+                padding: 10px;
+
+                background-color: transparent;
+
+                border: 1px solid rgba(168, 85, 247, 80);
+            }
+
+            #headerContainer:hover {
+                background-color: transparent;
+            }
+
+            #ipaHeader {
+                font-size: 20px;
+                font-weight: 600;
+                color: #a855f7;
+            }
+            """)
+
+        header_layout.addWidget(header, alignment=Qt.AlignCenter)
+        
 
         header_layout.addWidget(header, alignment=Qt.AlignCenter)
 
         root = QHBoxLayout()
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(14)
-        meta_root.addLayout(header_layout)
+        meta_root.addWidget(header_container)
         meta_root.addLayout(root)
 
 

@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import QApplication, QGraphicsSceneContextMenuEvent
+from PySide6.QtWidgets import QApplication
 from ui.dashboard import LLDashboard
 from scratch_pad_db import ScratchPad
 from lyrics_db import Lyrics
