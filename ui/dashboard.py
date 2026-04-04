@@ -528,13 +528,25 @@ class LLDashboard(QWidget):
             except Exception as e:
                 self.toast.show_toast(f"Rhyme search failed: {e}", "error")
                 return
+            
+            i = 0
+            words_list = results["words"]
 
-            for  rhyme, score in results:
-                item = f" {rhyme} -> {score:.2f} \n"
-                # self.rhyme_list.font(QFont())
-                self.rhyme_list.addItem(QListWidgetItem(item))
-                # return
+            if results["phrasal_rhymes"]:
+                for p in results["phrasal_rhymes"]:
+                    rhyme, score = p[0], p[1]
+                    item = f" {rhyme} -> {score:.2f} \n"
+                    self.rhyme_list.addItem(QListWidgetItem(item))
 
+            while i <= len(words_list) - 1:
+            
+                for r in results["word_rhymes"][words_list[i]]:
+                    rhyme, score = r[0], r[1]
+                    item = f" {rhyme} -> {score:.2f} \n"
+                    self.rhyme_list.addItem(QListWidgetItem(item))
+                i += 1
+
+            
         # mimic loading state; replace with real async later
         QTimer.singleShot(150, finish)
 

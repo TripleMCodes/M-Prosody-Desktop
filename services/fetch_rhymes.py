@@ -16,7 +16,8 @@ def find_rhymes(word: str):
 
 
 if __name__ == "__main__":
-    word = input("Enter word: ").strip()
+    # word = input("Enter word: ").strip()
+    word = "rhyme phrase"
     results = find_rhymes(word)
 
     for rhyme, score in results:
