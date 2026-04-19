@@ -41,7 +41,7 @@ def main():
     def create_note(note):
         return scratch_pad.add_content(note)
     
-    def delete_note(id):
+    def delete_note(id): 
         return scratch_pad.delete_content(id)
     
     def update_note(id, note):
