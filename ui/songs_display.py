@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel, QPushButton,
     QScrollArea, QGridLayout, QSpacerItem, QSizePolicy
 )
-
+from ui.glass_qss import SONGS_DISLAY_STYLE
 
 class SongCard(QFrame):
     """Individual song card with title, artist, metadata, and actions."""
@@ -99,46 +99,7 @@ class SongCard(QFrame):
         layout.addLayout(btn_layout)
         
         # Styling
-        self.setStyleSheet("""
-            #SongCard {
-                border-radius: 8px;
-                border: 1px solid rgba(168, 85, 247, 0.3);
-                background-color: rgba(168, 85, 247, 0.05);
-            }
-            
-            #SongCard:hover {
-                border: 1px solid rgba(168, 85, 247, 0.6);
-                background-color: rgba(168, 85, 247, 0.1);
-            }
-            
-            #SongCardBtn {
-                background-color: rgba(168, 85, 247, 0.2);
-                color: #a855f7;
-                border: 1px solid rgba(168, 85, 247, 0.4);
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 11px;
-                font-weight: 600;
-            }
-            
-            #SongCardBtn:hover {
-                background-color: rgba(168, 85, 247, 0.4);
-            }
-            
-            #SongCardBtnDanger {
-                background-color: rgba(239, 68, 68, 0.2);
-                color: #ef4444;
-                border: 1px solid rgba(239, 68, 68, 0.4);
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 11px;
-                font-weight: 600;
-            }
-            
-            #SongCardBtnDanger:hover {
-                background-color: rgba(239, 68, 68, 0.4);
-            }
-        """)
+        self.setStyleSheet(SONGS_DISLAY_STYLE)
 
 
 class SongsDisplayWidget(QWidget):
