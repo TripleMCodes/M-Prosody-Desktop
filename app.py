@@ -13,7 +13,8 @@ def main():
     
     app = QApplication(sys.argv)
     w = LLDashboard()
-    w.resize(1200, 720)
+    w.setWindowTitle("MProsody - Dashboard")
+    w.showMaximized()
 
     def open_studio():
         from ui.main_window import MProsody
@@ -21,6 +22,7 @@ def main():
         latest_songs = get_lastest_songs()
         
         window = MProsody() 
+        window.showMaximized()
         window.theme_changed_signal.connect(w.apply_theme)
         window.new_song_saved.connect(w.update_stats)
 
@@ -79,10 +81,14 @@ def main():
         sessions = stats[2] 
 
         return writing_time, sessions, songs_num, total_songs_num
+    
+    def search_songs(query: str):
+        """Search songs by title, artist, or lyrics content."""
+        return lyrics.search_songs(query)
         
 
     w.on_open_studio = open_studio
-    # w.on_fetch_rhymes = lambda word: [f"{word} — {x}" for x in ("time", "crime", "slime", "prime", "climb")]
+    w.on_search_songs = search_songs
     w.on_refresh_notes = get_notes
     w.on_save_note = create_note
     w.on_update_note = update_note

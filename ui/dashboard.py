@@ -50,6 +50,7 @@ class LLDashboard(QWidget):
         self.on_delete_note: Optional[Callable[[str], Dict[str, Any]]] = None
         self.on_refresh_notes: Optional[Callable[[], List[Note]]] = None
         self.on_get_stats: Optional[Callable[[], None]] = None
+        self.on_search_songs: Optional[Callable[[str], List]] = None
 
         self._current_note_id: str = ""
 
@@ -559,8 +560,28 @@ class LLDashboard(QWidget):
         q = self.search_input.text().strip()
         if not q:
             self.toast.show_toast("Type something to search.", "info")
+        elif not self.on_search_songs:
+            self.toast.show_toast(f"Search not wired.", "info")
         else:
-            self.toast.show_toast(f"Searching for “{q}”… (wire handler)", "info")
+            results = self.on_search_songs(q)
+            if isinstance(results, dict):
+                self.toast.show_toast(f"Search error: {results.get('message', 'Unknown error')}", "error")
+                return
+            
+            if not results:
+                self.toast.show_toast(f"No songs found for {q}", "info")
+                return
+            
+            # Display results in recent songs list
+            self.recent_songs_list.clear()
+            for row in results:
+                if len(row) >= 3:
+                    song_id, title, artist = row[0], row[1], row[2]
+                    item = QListWidgetItem(f"{title} — {artist}")
+                    item.setData(Qt.UserRole, row)
+                    self.recent_songs_list.addItem(item)
+            
+            self.toast.show_toast(f"Found {len(results)} song(s)", "success")
 
     # Keep toast positioned on resize
     def resizeEvent(self, event):

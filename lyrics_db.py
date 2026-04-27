@@ -88,6 +88,30 @@ class Lyrics():
             logging.debug(e)
             return {"message": "Error - Please try again."}
 
+    def search_songs(self, query_text: str) -> list | dict:
+        """Search songs by title, artist, or lyrics content."""
+        if not query_text or not query_text.strip():
+            return []
+        
+        search_term = f"%{query_text.strip()}%"
+        
+        query = f"""
+            SELECT id, title, artist, album, genre, mood, lyrics
+            FROM {self.lyrics_table}
+            WHERE title LIKE ? OR artist LIKE ? OR lyrics LIKE ?
+            ORDER BY title ASC
+        """
+        try:
+            self.conn_cursor.execute(query, (search_term, search_term, search_term))
+            results = self.conn_cursor.fetchall()
+            return results
+        except sqlite3.DatabaseError as e:
+            logging.debug(e)
+            return {"message": "Database Error - Please try again."}
+        except Exception as e:
+            logging.debug(e)
+            return {"message": "Error - Please try again."}
+
 
 #===============================================insert method(s)======================================
 #=====================================================================================================
