@@ -492,33 +492,53 @@ class MProsody(QWidget):
             html_output = self._format_rhymes_result(res)
             self.editor.display_editor.setHtml(html_output)
         elif part == opt[1]:
+            if not self.online_gate.require_online("Synonyms Query"):
+                return
             res = f"Synonyms for '{word}': {self.lexicon.synonyms(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[2]:
+            if not self.online_gate.require_online("Antonyms Query"):
+                return
             res = f"Antonyms for '{word}': {self.lexicon.antonyms(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[3]:
+            if not self.online_gate.require_online("Homophones Query"):
+                return
             res = f"Homophones for '{word}': {self.lexicon.homophones(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[4]:
+            if not self.online_gate.require_online("Antonyms Query"):
+                return
             res = f"Related words for '{word}': {self.lexicon.related(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[5]:
+            if not self.online_gate.require_online("Adjectives Query"):
+                return
             res = f"Adjectives for '{word}': {self.lexicon.adjectives(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[6]:
+            if not self.online_gate.require_online("Nouns Query"):
+                return
             res = f"Nouns described by '{word}': {self.lexicon.nouns_described_by(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[7]:
+            if not self.online_gate.require_online("Homonyms Query"):
+                return
             res = f"Spelled like '{word}': {self.lexicon.spelled_like(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[8]:
+            if not self.online_gate.require_online("Hyponyms Query"):
+                return
             res = f"More specific than '{word}': {self.lexicon.hyponyms(word)}"
             self.editor.display_editor.setPlainText(res)
         elif part == opt[9]:
+            if not self.online_gate.require_online("Hypernyms Query"):
+                return
             res = f"More general than '{word}': {self.lexicon.hypernyms(word)}"
             self.editor.display_editor.setPlainText(res)
         else:
+            if not self.online_gate.require_online("Homophones Query"):
+                return
             res = f"Sounds like '{word}': {self.lexicon.sounds_like(word)}"
             self.editor.display_editor.setPlainText(res)
         
