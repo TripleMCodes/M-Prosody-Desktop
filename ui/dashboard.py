@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 from typing import Optional, Callable, List, Any, Dict
 from pathlib import Path
 from ui.notifications import NotificationToast
+from ui.songs_display import SongsDisplayWidget
 from services.glass_builder import glass_card
 from services.models import Note, SongPreview
 from services.preferences import ThemeManager, Preferences
@@ -44,6 +45,7 @@ class LLDashboard(QWidget):
     
         # callbacks (inject from app)
         self.on_open_studio: Optional[Callable[[], None]] = None
+        self.on_open_studio_with_song: Optional[Callable[[tuple], None]] = None
         self.on_fetch_rhymes: Optional[Callable[[str], List[str]]] = None
         self.on_save_note: Optional[Callable[[str, str], Dict[str, Any]]] = None
         self.on_update_note: Optional[Callable[[str, str], Dict[str, Any]]] = None
@@ -332,10 +334,12 @@ class LLDashboard(QWidget):
         # rec_title.setStyleSheet("font-weight: 600; margin-top: 8px;")
         ws.addWidget(rec_title)
 
-        self.recent_songs_list = QListWidget()
-        self.recent_songs_list.setMinimumHeight(220)
-        self.recent_songs_list
-        ws.addWidget(self.recent_songs_list)
+        icons_dir = Path(__file__).parent / "Icons"
+        self.recent_songs_display = SongsDisplayWidget(icons_dir)
+        self.recent_songs_display.setMinimumHeight(280)
+        self.recent_songs_display.song_selected.connect(self._on_song_card_selected)
+        self.recent_songs_display.song_delete_requested.connect(self._on_song_card_delete)
+        ws.addWidget(self.recent_songs_display)
 
         lay.addWidget(ws_card)
         lay.addStretch(1)
@@ -416,11 +420,12 @@ class LLDashboard(QWidget):
         self.toast.show_toast(res.get("message"), "error")
 
     def set_recent_songs(self, songs: List[SongPreview]):
-        self.recent_songs_list.clear()
+        """Convert SongPreview objects to tuples and display them."""
+        song_tuples = []
         for s in songs:
-            item = QListWidgetItem(f"{s.title} — {s.artist}")
-            item.setData(Qt.UserRole, s)
-            self.recent_songs_list.addItem(item)
+            # Create a tuple with song info (id, title, artist, ...)
+            song_tuples.append((s.id, s.title, s.artist, "", "", "", ""))
+        self.recent_songs_display.set_songs(song_tuples)
 
     def set_notes(self, notes: List[Note]):
         self.notes_list.clear()
@@ -572,16 +577,26 @@ class LLDashboard(QWidget):
                 self.toast.show_toast(f"No songs found for {q}", "info")
                 return
             
-            # Display results in recent songs list
-            self.recent_songs_list.clear()
-            for row in results:
-                if len(row) >= 3:
-                    song_id, title, artist = row[0], row[1], row[2]
-                    item = QListWidgetItem(f"{title} — {artist}")
-                    item.setData(Qt.UserRole, row)
-                    self.recent_songs_list.addItem(item)
-            
+            # Display results using the new widget
+            self.recent_songs_display.set_songs(results)
             self.toast.show_toast(f"Found {len(results)} song(s)", "success")
+    
+    def _on_song_card_selected(self, song_data):
+        """Handle song card selection (View/Edit button clicked)."""
+        if song_data and len(song_data) >= 1:
+            # Open studio with the selected song
+            if self.on_open_studio_with_song:
+                self.on_open_studio_with_song(song_data)
+            else:
+                self.toast.show_toast("Open studio handler not wired.", "info")
+    
+    def _on_song_card_delete(self, song_data):
+        """Handle song card delete request."""
+        if song_data and len(song_data) >= 1:
+            song_id = song_data[0]
+            title = song_data[1] if len(song_data) > 1 else "Unknown"
+            self.toast.show_toast(f"Delete requested: {title}", "info")
+            print(f"Delete requested for song: {song_id}")
 
     # Keep toast positioned on resize
     def resizeEvent(self, event):

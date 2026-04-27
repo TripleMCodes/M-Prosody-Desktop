@@ -5,6 +5,7 @@ from scratch_pad_db import ScratchPad
 from lyrics_db import Lyrics
 from stats_db import Stats
 from services.models import Note, SongPreview
+from services.lyrics_library import LyricsLibrary
 
 def main():
 
@@ -16,8 +17,9 @@ def main():
     w.setWindowTitle("MProsody - Dashboard")
     w.showMaximized()
 
-    def open_studio():
+    def open_studio(song_data=None):
         from ui.main_window import MProsody
+        lyrics_library = LyricsLibrary()
 
         latest_songs = get_lastest_songs()
         
@@ -29,6 +31,17 @@ def main():
         window.new_song_saved.connect(update_dashboard_recent_songs)
         window.recorded_writing_time.connect(w.save_writing_time)
         window.show()
+        
+        # Load song if provided
+        if song_data and len(song_data) >= 7:
+            # print(f'the song data is: {song_data}')
+            song_id, title, artist, album, genre, mood, lyrics = song_data[:7]
+            data = lyrics_library.get_song_by_id(song_id)
+            # print(f"song by id data lyrics: {data[6]}")
+            lyrics = data[6]
+            window.current_song_id = song_id
+            window.editor.load_song_fields(title or "", artist or "", album or "", genre or "", mood or "")
+            window.editor.load_lyrics(lyrics or "")
 
     def get_notes():
         notes = scratch_pad.get_all_content()
@@ -88,12 +101,14 @@ def main():
         
 
     w.on_open_studio = open_studio
-    w.on_search_songs = search_songs
+    w.on_open_studio_with_song = lambda song_data: open_studio(song_data)
+    # w.on_fetch_rhymes = lambda word: [f"{word} — {x}" for x in ("time", "crime", "slime", "prime", "climb")]
     w.on_refresh_notes = get_notes
     w.on_save_note = create_note
     w.on_update_note = update_note
     w.on_delete_note = delete_note
     w.on_get_stats = get_stats
+    w.on_search_songs = search_songs
     writing_time, sessions, songs_num, total_songs_num = get_stats()
 
     h = writing_time // 3600

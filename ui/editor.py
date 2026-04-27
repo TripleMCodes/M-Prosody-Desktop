@@ -89,6 +89,7 @@ class EditorPanel(QWidget):
         self.song_mood_input.setText(mood or "")
 
     def load_lyrics(self, lyrics: str) -> None:
+        # print(f"the lyrics are: {lyrics}")
         self.writing_editor.blockSignals(True)
         self.writing_editor.setPlainText(lyrics or "")
         self.writing_editor.blockSignals(False)
