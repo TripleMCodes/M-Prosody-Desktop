@@ -385,9 +385,10 @@ class LLDashboard(QWidget):
         
         writing_time, sessions, songs_num, total_songs_num = self.on_get_stats()
 
-        m = writing_time // 60
+        h = writing_time // 3600
+        m = (writing_time % 3600) // 60
         s = writing_time % 60
-        writing_time = f"{m:02d}:{s:02d} min"
+        writing_time = f"{h:02d}:{m:02d}:{s:02d}"
 
         res = self.stats.add_session(sessions)
         sessions = res.get("new_ses", sessions)
