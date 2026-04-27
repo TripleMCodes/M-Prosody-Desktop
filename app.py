@@ -82,7 +82,7 @@ def main():
         
 
     w.on_open_studio = open_studio
-    w.on_fetch_rhymes = lambda word: [f"{word} — {x}" for x in ("time", "crime", "slime", "prime", "climb")]
+    # w.on_fetch_rhymes = lambda word: [f"{word} — {x}" for x in ("time", "crime", "slime", "prime", "climb")]
     w.on_refresh_notes = get_notes
     w.on_save_note = create_note
     w.on_update_note = update_note

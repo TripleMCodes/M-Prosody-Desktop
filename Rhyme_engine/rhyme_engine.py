@@ -580,6 +580,6 @@ def main() -> None:
 if __name__ == "__main__":
     import json
     # main()
-    rhymes = find_rhymes_api("Time will tell")
+    rhymes = find_rhymes_api("Time will")
     rhymes = json.dumps(rhymes)
     print(rhymes)

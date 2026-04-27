@@ -479,48 +479,112 @@ class MProsody(QWidget):
         word = self.tools.prompt2_area.text().strip()
         if not word:
             return
+        
+       
+        self.editor.display_editor.setText("LOADING...")
 
         # map to lexicon service
         opt = self.tools.options_list
-        # if part == opt[0]:
-        #     res = f"Rhymes with '{word}': {self.lexicon.rhymes(word)}"
+        
         if part == opt[0]:
+            # Handle rhymes with formatted HTML output
             res = find_rhymes_api(word)
-            # print(results)
-            # res = ""
-            # for rhyme, score in results:
-            #     res += f"{rhyme} -> {score:.2f}"
-            
+            html_output = self._format_rhymes_result(res)
+            self.editor.display_editor.setHtml(html_output)
         elif part == opt[1]:
             res = f"Synonyms for '{word}': {self.lexicon.synonyms(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[2]:
             res = f"Antonyms for '{word}': {self.lexicon.antonyms(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[3]:
             res = f"Homophones for '{word}': {self.lexicon.homophones(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[4]:
             res = f"Related words for '{word}': {self.lexicon.related(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[5]:
             res = f"Adjectives for '{word}': {self.lexicon.adjectives(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[6]:
             res = f"Nouns described by '{word}': {self.lexicon.nouns_described_by(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[7]:
             res = f"Spelled like '{word}': {self.lexicon.spelled_like(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[8]:
             res = f"More specific than '{word}': {self.lexicon.hyponyms(word)}"
+            self.editor.display_editor.setPlainText(res)
         elif part == opt[9]:
             res = f"More general than '{word}': {self.lexicon.hypernyms(word)}"
+            self.editor.display_editor.setPlainText(res)
         else:
             res = f"Sounds like '{word}': {self.lexicon.sounds_like(word)}"
-
-        rime = ""
-        if part == "Rhymes":
-            for rhyme, score in res:
-                rime += f"{rhyme} -> {score:.2f}\n"
-                self.editor.display_editor.setPlainText(rime)
-            return 
+            self.editor.display_editor.setPlainText(res)
         
-        self.editor.display_editor.setPlainText(res)
         self.tools.prompt2_area.clear()
+
+    def _format_rhymes_result(self, res: dict) -> str:
+        """Format rhyme results as HTML for display."""
+        if not res or 'word_rhymes' not in res:
+            return "<p>No rhymes found.</p>"
+        
+        input_phrase = res.get('input', 'N/A')
+        words = res.get('words', [])
+        word_rhymes = res.get('word_rhymes', {})
+        phrasal_rhymes = res.get('phrasal_rhymes', [])
+        
+        html = f"""
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+            .header {{ font-size: 16px; font-weight: bold; color: #2E86AB; margin-bottom: 12px; }}
+            .word-section {{ margin-bottom: 20px; }}
+            .word-title {{ font-size: 14px; font-weight: bold; color: #A23B72; margin-top: 10px; margin-bottom: 8px; }}
+            .rhyme-item {{ margin-left: 20px; padding: 4px; color: #333; }}
+            .rhyme-word {{ color: #2E86AB; font-weight: 500; }}
+            .rhyme-score {{ color: #888; font-size: 12px; }}
+            .phrasal-section {{ margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; }}
+            .phrasal-title {{ font-size: 14px; font-weight: bold; color: #A23B72; margin-bottom: 10px; }}
+        </style>
+        
+        <div class="header">Rhymes for: <strong>{input_phrase}</strong></div>
+        """
+        
+        # Individual word rhymes
+        for word_key, rhymes_list in word_rhymes.items():
+            html += f'<div class="word-section">'
+            html += f'<div class="word-title">Rhymes with "{word_key}":</div>'
+            
+            
+            for rhyme_word, score in rhymes_list:
+                html += f'''<div class="rhyme-item">
+                    <span class="rhyme-word">{rhyme_word}</span>
+                    <span class="rhyme-score">(score: {score:.4f})</span>
+                </div>'''
+            
+            # if len(rhymes_list) > 15:
+            #     html += f'<div class="rhyme-item"><em>... and {len(rhymes_list) - 15} more</em></div>'
+            
+            html += '</div>'
+        
+        # Phrasal rhymes
+        if phrasal_rhymes:
+            html += '<div class="phrasal-section">'
+            html += '<div class="phrasal-title">Phrasal Rhymes:</div>'
+            
+            for phrase_rhyme, score in phrasal_rhymes:
+                html += f'''<div class="rhyme-item">
+                    <span class="rhyme-word">{phrase_rhyme}</span>
+                    <span class="rhyme-score">(score: {score:.4f})</span>
+                </div>'''
+            
+            # if len(phrasal_rhymes) > 10:
+            #     html += f'<div class="rhyme-item"><em>... and {len(phrasal_rhymes) - 10} more phrasal rhymes</em></div>'
+            
+            html += '</div>'
+        
+        html += '</div>'
+        return html
 
     # -------------------------
     # Word count / syllables / autosave

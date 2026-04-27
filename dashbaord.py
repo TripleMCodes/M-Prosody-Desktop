@@ -593,7 +593,6 @@ class LLDashboard(QWidget):
         QTimer.singleShot(150, finish)
 
     def _noop_search(self):
-        # placeholder: you can hook this into your local DB search or API
         q = self.search_input.text().strip()
         if not q:
             self.toast.show_toast("Type something to search.", "info")
