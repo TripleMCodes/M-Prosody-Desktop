@@ -6,6 +6,7 @@ from lyrics_db import Lyrics
 from stats_db import Stats
 from services.models import Note, SongPreview
 from services.lyrics_library import LyricsLibrary
+from migration_table import MigrationTable
 
 def main():
 
