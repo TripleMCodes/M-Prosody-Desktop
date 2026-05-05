@@ -1,22 +1,61 @@
 import sys
 from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QTimer
 from ui.dashboard import LLDashboard
 from scratch_pad_db import ScratchPad
 from lyrics_db import Lyrics
 from stats_db import Stats
 from services.models import Note, SongPreview
 from services.lyrics_library import LyricsLibrary
-from db_migration_table import MigrationTable
+# from db_migration_table import MigrationManager
+
+# ── App version (bump this with each release) ─────────────────────────────────
+CURRENT_VERSION = "1.0.0"
+
+
+def check_for_updates_async(parent_window):
+    """
+    Runs the version check in a short-delayed, non-blocking way so the
+    dashboard appears first and the update dialog floats over it naturally.
+    Called via QTimer so it never blocks the UI thread.
+    """
+    from updater import fetch_version_info, is_newer, VERSION_URL
+    from ui.update_dialog import UpdateDialog
+
+    info = fetch_version_info(VERSION_URL)
+
+    if not info:
+        return  # no network or bad response — silently skip
+
+    remote_version = info.get("version")
+    if not remote_version or not info.get("download_url"):
+        return
+
+    if not is_newer(remote_version, CURRENT_VERSION):
+        return  # already up to date
+
+    # Show the update dialog centred over the dashboard
+    dialog = UpdateDialog(
+        version_info=info,
+        current_version=CURRENT_VERSION,
+        parent=parent_window,
+    )
+    dialog.exec()   # blocks until user skips, closes, or restarts
+
 
 def main():
 
     scratch_pad = ScratchPad()
     lyrics = Lyrics()
-    
+
     app = QApplication(sys.argv)
     w = LLDashboard()
     w.setWindowTitle("MProsody - Dashboard")
     w.showMaximized()
+
+    # ── Schedule update check 1.5 s after the window is shown ────────────────
+    # Delay lets the dashboard fully render before any network I/O begins.
+    QTimer.singleShot(1500, lambda: check_for_updates_async(w))
 
     def open_studio(song_data=None):
         from ui.main_window import MProsody
@@ -35,10 +74,8 @@ def main():
         
         # Load song if provided
         if song_data and len(song_data) >= 7:
-            # print(f'the song data is: {song_data}')
             song_id, title, artist, album, genre, mood, lyrics = song_data[:7]
             data = lyrics_library.get_song_by_id(song_id)
-            # print(f"song by id data lyrics: {data[6]}")
             lyrics = data[6]
             window.current_song_id = song_id
             window.editor.load_song_fields(title or "", artist or "", album or "", genre or "", mood or "")
@@ -89,7 +126,6 @@ def main():
         if ts.get('status'):
             total_songs_num = ts.get('message', 0)[0]
             
-            
         stats = stats.get_res_stats()
         writing_time = stats[1]
         sessions = stats[2] 
@@ -99,11 +135,9 @@ def main():
     def search_songs(query: str):
         """Search songs by title, artist, or lyrics content."""
         return lyrics.search_songs(query)
-        
 
     w.on_open_studio = open_studio
     w.on_open_studio_with_song = lambda song_data: open_studio(song_data)
-    # w.on_fetch_rhymes = lambda word: [f"{word} — {x}" for x in ("time", "crime", "slime", "prime", "climb")]
     w.on_refresh_notes = get_notes
     w.on_save_note = create_note
     w.on_update_note = update_note
@@ -118,12 +152,12 @@ def main():
     writing_time = f"{h:02d}:{m:02d}:{s:02d}"
     
     w.set_stats(writing_time=writing_time, writing_sessions=sessions, new_songs=songs_num, num_songs=total_songs_num)
-    w.set_draft(artist="Triple MC", title="Polaroid Dreams", album="Late Anamnesis II")
     latest_songs = get_lastest_songs()
     w.set_recent_songs(latest_songs)
     w.set_notes(w.on_refresh_notes())
     w.show()
     sys.exit(app.exec())
 
+
 if __name__ == "__main__":
-    main()           
+    main()
