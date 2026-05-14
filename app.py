@@ -7,7 +7,7 @@ from lyrics_db import Lyrics
 from stats_db import Stats
 from services.models import Note, SongPreview
 from services.lyrics_library import LyricsLibrary
-# from db_migration_table import MigrationManager
+from db_migration_table import MigrationManager
 
 # ── App version (bump this with each release) ─────────────────────────────────
 CURRENT_VERSION = "1.0.0"
@@ -15,12 +15,14 @@ CURRENT_VERSION = "1.0.0"
 
 def check_for_updates_async(parent_window):
     """
-    Runs the version check in a short-delayed, non-blocking way so the
-    dashboard appears first and the update dialog floats over it naturally.
-    Called via QTimer so it never blocks the UI thread.
+    Runs a version check after the dashboard has rendered.
+    Called via QTimer — does not block the UI thread.
+    Note: dialog.exec() is modal but only runs if an update is available.
     """
     from updater import fetch_version_info, is_newer, VERSION_URL
     from ui.update_dialog import UpdateDialog
+    from db_migration_table import MigrationManager, MIGRATIONS
+    from PySide6.QtWidgets import QDialog
 
     info = fetch_version_info(VERSION_URL)
 
@@ -40,8 +42,9 @@ def check_for_updates_async(parent_window):
         current_version=CURRENT_VERSION,
         parent=parent_window,
     )
-    dialog.exec()   # blocks until user skips, closes, or restarts
 
+    if dialog.exec() == QDialog.Accepted:
+        MigrationManager().migrate(MIGRATIONS, app_version=CURRENT_VERSION)
 
 def main():
 
@@ -50,7 +53,7 @@ def main():
 
     app = QApplication(sys.argv)
     w = LLDashboard()
-    w.setWindowTitle("MProsody - Dashboard")
+    w.setWindowTitle("M-Prosody - Dashboard")
     w.showMaximized()
 
     # ── Schedule update check 1.5 s after the window is shown ────────────────
@@ -120,11 +123,14 @@ def main():
         ls = lyrics.get_latest_songs_count()
         ts = lyrics.get_all_songs_count()
 
-        if ls.get("status"):
-            songs_num = ls.get("message", 0)[0]
+        # if ls.get("status"):
+        #     songs_num = ls.get("message", 0)[0]
         
-        if ts.get('status'):
-            total_songs_num = ts.get('message', 0)[0]
+        # if ts.get('status'):
+        #     total_songs_num = ts.get('message', 0)[0]
+
+        songs_num = ls.get("message", [0])[0] if ls.get("status") else 0
+        total_songs_num = ts.get("message", [0])[0] if ts.get("status") else 0
             
         stats = stats.get_res_stats()
         writing_time = stats[1]

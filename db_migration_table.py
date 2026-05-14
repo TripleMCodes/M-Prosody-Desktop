@@ -13,7 +13,7 @@ class MigrationManager:
         self.conn.row_factory = sqlite3.Row
 
     # -------------------------
-    # 🧱 Setup
+    # Setup
     # -------------------------
     def initialize(self):
         """Create required tables"""
@@ -32,7 +32,7 @@ class MigrationManager:
             """)
 
     # -------------------------
-    # 🧠 Metadata (optional)
+    # Metadata (optional)
     # -------------------------
     def set_db_version(self, version: str):
         with self.conn:
@@ -49,28 +49,29 @@ class MigrationManager:
         return row["value"] if row else None
 
     # -------------------------
-    # 🔁 Migration tracking
+    # Migration tracking
     # -------------------------
     def get_applied_migrations(self):
         cur = self.conn.execute("SELECT id FROM migrations")
         return {row["id"] for row in cur.fetchall()}
 
     def apply_migration(self, migration):
+        """Apply a single migration inside an atomic transaction."""
         logging.debug(f"Applying migration: {migration['id']}")
 
         try:
-            with self.conn:  # ✅ atomic transaction
-                self.conn.executescript(migration["sql"])
+            with self.conn:
+                self.conn.execute(migration["sql"])
                 self.conn.execute(
                     "INSERT INTO migrations (id) VALUES (?)",
                     (migration["id"],)
                 )
         except Exception as e:
             logging.error(f"Migration failed: {migration['id']} → {e}")
-            raise  # crash early, don't corrupt state
+            raise
 
     # -------------------------
-    # 🧯 Safety
+    # Safety
     # -------------------------
     def backup(self):
         backup_path = self.db_path.with_suffix(".backup.db")
@@ -78,7 +79,7 @@ class MigrationManager:
         logging.debug(f"Backup created at: {backup_path}")
 
     # -------------------------
-    # 🚀 Migration runner
+    # Migration runner
     # -------------------------
     def migrate(self, migrations, app_version=None):
         self.initialize()
@@ -99,7 +100,7 @@ class MigrationManager:
 
 
 # -------------------------
-# 📦 Define migrations
+# Define migrations
 # -------------------------
 MIGRATIONS = [
     {
