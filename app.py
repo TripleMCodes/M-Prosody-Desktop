@@ -1,6 +1,8 @@
+from pathlib import Path
 import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QIcon
 from ui.dashboard import LLDashboard
 from scratch_pad_db import ScratchPad
 from lyrics_db import Lyrics
@@ -48,12 +50,15 @@ def check_for_updates_async(parent_window):
 
 def main():
 
+    window_icon = Path(__file__).parent / "ui" / "Icons" / "logo_no_bg.png"
+
     scratch_pad = ScratchPad()
     lyrics = Lyrics()
 
     app = QApplication(sys.argv)
     w = LLDashboard()
     w.setWindowTitle("M-Prosody - Dashboard")
+    w.setWindowIcon(QIcon(str(window_icon)))
     w.showMaximized()
 
     # ── Schedule update check 1.5 s after the window is shown ────────────────

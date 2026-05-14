@@ -33,8 +33,12 @@ class LLDashboard(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
 
+        
+
+
         self.prefs = Preferences(CONFIG_FILE)
         self.setWindowTitle("/ɛm ˈprɑːsədi/")
+        
         self.theme_mgr = ThemeManager()
         self.theme_mgr.load_themes()
         prefs = self.prefs.load()
@@ -70,7 +74,6 @@ class LLDashboard(QWidget):
         # LOGO
         logo = QLabel()
         logo_path = os.path.join(
-            "mprosody",
             "ui",
             "Icons",
             "logo_no_bg.png"
@@ -527,9 +530,9 @@ class LLDashboard(QWidget):
 
         def finish():
             self.rhyme_loading.setText("")
-            if not self.on_fetch_rhymes:
-                self.toast.show_toast("Rhyme search not wired.", "info")
-                return
+            # if not self.on_fetch_rhymes:
+            #     self.toast.show_toast("Rhyme search not wired.", "info")
+            #     return
             try:
                 results = find_rhymes(word)
             except Exception as e:

@@ -101,6 +101,10 @@ class MProsody(QWidget):
     def __init__(self):
         super().__init__()
 
+        window_icon = Path(__file__).parent  / "Icons" / "logo_no_bg.png"
+        self.setWindowTitle("M-Prosody - Writing studio")
+        self.setWindowIcon(QIcon(str(window_icon)))
+
         # --- state ---
         self.search_mode: Optional[str] = None
         self.lyric_mode = "lyric"
